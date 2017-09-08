@@ -1,1 +1,1 @@
-# idseq-upload
+# idseq-cli
