@@ -13,7 +13,8 @@ def upload(sample_name, project_id, files, email, token, url):
         "sample": {
             "name": sample_name,
             "project_id": project_id,
-            "input_files_attributes": [{"name": f} for f in files]
+            "input_files_attributes": [{"name": f} for f in files],
+            "status": "created"
         }
     }
 
@@ -34,15 +35,35 @@ def upload(sample_name, project_id, files, email, token, url):
 
     data = resp.json()
 
-    for file in data['input_files']:
-        with Tqio(file['name']) as f:
+    l = len(data['input_files'])
+
+    print("uploading %d files" % l)
+
+    for i, file in enumerate(data['input_files']):
+        with Tqio(file['name'], i, l) as f:
             requests.put(file['presigned_url'], data=f)
+
+    update = {
+        "sample": {
+            "id": data['id'],
+            "name": sample_name,
+            "status": "uploaded"
+        }
+    }
+
+    resp = requests.put('http://%s/samples/%d.json' % (url, data['id']), data=json.dumps(update), headers=headers)
+
+    if resp.status_code == 200:
+        print("success")
+    else:
+        print("failure")
 
 
 class Tqio(io.BufferedReader):
-    def __init__(self, file_path):
+    def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
-        self.tqdm = tqdm.tqdm(desc=file_path, unit="bytes", unit_scale=True, total=os.path.getsize(file_path))
+        desc = "%s (%d/%d)" % (file_path, i + 1, count)
+        self.tqdm = tqdm.tqdm(desc=desc, unit="bytes", unit_scale=True, total=os.path.getsize(file_path))
 
     def read(self, *args, **kwargs):
         chunk = super(Tqio, self).read(*args, **kwargs)
