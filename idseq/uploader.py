@@ -7,12 +7,12 @@ import sys
 import requests
 import tqdm
 
-def upload(sample_name, project_id, files, email, token, url):
+def upload(sample_name, project_name, files, email, token, url):
 
     data = {
         "sample": {
             "name": sample_name,
-            "project_id": project_id,
+            "project_name": project_name,
             "input_files_attributes": [{"name": f} for f in files],
             "status": "created"
         }
