@@ -4,7 +4,7 @@
 all: lint test
 
 lint:
-	@flake8
+	flake8
 
 test:
 	@echo 'done'
