@@ -7,9 +7,26 @@ import sys
 import requests
 import tqdm
 
+def detect_source_type(file):
+    if file.startswith('s3://'):
+        return 's3'
+    else: #assume local
+        stat_result = os.stat(file)
+        return 'local'
+
 def upload(sample_name, project_name, email, token, url, r1, r2):
 
     files = [r1, r2]
+
+    # TODO detect source type - local or s3
+    # TODO validate that source types are the same
+    # TODO add source type - local or s3 and send as an attribute for intput_files
+
+    # over in idseq-web
+        # write job to cp
+        # enqueue based on source types (all files in sample 1 job)
+        # validate that input file source types are the same
+        # maybe test permissions in-band?
 
     data = {
         "sample": {
