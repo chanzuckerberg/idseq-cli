@@ -32,7 +32,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2):
             "name": sample_name,
             "project_name": project_name,
             "input_files_attributes": [
-                {"name": os.path.basename(f.path), "source_type": f.source_type()} for f in files
+              {"name": os.path.basename(f.path), "source": f.path, "source_type": f.source_type()} for f in files
             ],
             "status": "created"
         }
