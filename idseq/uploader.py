@@ -8,6 +8,7 @@ import requests
 import stat
 import tqdm
 
+
 class File():
     def __init__(self, path):
         self.path = path
@@ -17,6 +18,7 @@ class File():
             return 's3'
         elif stat.S_ISREG(os.stat(self.path).st_mode):
             return 'local'
+
 
 def upload(sample_name, project_name, email, token, url, r1, r2):
 
@@ -32,7 +34,11 @@ def upload(sample_name, project_name, email, token, url, r1, r2):
             "name": sample_name,
             "project_name": project_name,
             "input_files_attributes": [
-                {"name": os.path.basename(f.path), "source_type": f.source_type()} for f in files
+                {
+                    "name": os.path.basename(f.path),
+                    "source": f.path,
+                    "source_type": f.source_type()
+                } for f in files
             ],
             "status": "created"
         }
@@ -45,7 +51,10 @@ def upload(sample_name, project_name, email, token, url, r1, r2):
         'X-User-Token': token
     }
 
-    resp = requests.post('http://' + url + '/samples.json', data=json.dumps(data), headers=headers)
+    resp = requests.post(
+        'http://' + url + '/samples.json',
+        data=json.dumps(data),
+        headers=headers)
 
     if resp.status_code == 201:
         print("successfully created entry")
@@ -73,7 +82,9 @@ def upload(sample_name, project_name, email, token, url, r1, r2):
             }
         }
 
-        resp = requests.put('http://%s/samples/%d.json' % (url, data['id']), data=json.dumps(update), headers=headers)
+        resp = requests.put(
+            'http://%s/samples/%d.json' %
+            (url, data['id']), data=json.dumps(update), headers=headers)
 
         if resp.status_code == 200:
             print("success")
@@ -85,7 +96,11 @@ class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
         desc = "%s (%d/%d)" % (file_path, i + 1, count)
-        self.tqdm = tqdm.tqdm(desc=desc, unit="bytes", unit_scale=True, total=os.path.getsize(file_path))
+        self.tqdm = tqdm.tqdm(
+            desc=desc,
+            unit="bytes",
+            unit_scale=True,
+            total=os.path.getsize(file_path))
 
     def read(self, *args, **kwargs):
         chunk = super(Tqio, self).read(*args, **kwargs)
