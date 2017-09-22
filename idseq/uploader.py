@@ -26,7 +26,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2):
 
     if files[0].source_type() != files[1].source_type():
         print("ERROR: input files must be same type")
-        sys.exit()
+        raise
 
     source_type = files[0].source_type()
     data = {
@@ -61,7 +61,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2):
     else:
         print('failed %s' % resp.status_code)
         print(resp.json())
-        sys.exit()
+        raise
 
     if source_type == 'local':
         data = resp.json()
