@@ -6,7 +6,8 @@
 `pip install git+https://github.com/chanzuckerberg/idseq-cli.git`
 
 ## Submit a sample
-1. First, make sure you have login credentials for idseq website. You will need your login email and an authentication token
+1. Make sure AWS CLI is installed and configured
+1. Make sure you have login credentials for idseq website. You will need your login email and an authentication token
 1. Only gzipped paired fastq files are accepted for idseq at the moment. Make sure you have the files on your local machine or on S3.
 1. Submit your sample as follows. Get more detailed instructions by running `idseq --help`
 
