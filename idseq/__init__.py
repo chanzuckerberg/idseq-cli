@@ -60,6 +60,11 @@ def main():
         type=str,
         required=True,
         help='second gziped fastq file path. could be a local file or s3 path')
+    parser.add_argument(
+        '--preload',
+        metavar='file',
+        type=str,
+        help='s3 path for preloading the results for lazy run')
 
     try:
         args = parser.parse_args()
@@ -74,7 +79,8 @@ def main():
             args.token,
             args.url,
             args.r1,
-            args.r2)
+            args.r2,
+            args.preload)
     except BaseException:
         parser.print_help()
         sys.exit(1)
