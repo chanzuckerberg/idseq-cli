@@ -20,7 +20,15 @@ class File():
             return 'local'
 
 
-def upload(sample_name, project_name, email, token, url, r1, r2):
+def upload(
+        sample_name,
+        project_name,
+        email,
+        token,
+        url,
+        r1,
+        r2,
+        preload_s3_path):
 
     files = [File(r1), File(r2)]
 
@@ -43,6 +51,8 @@ def upload(sample_name, project_name, email, token, url, r1, r2):
             "status": "created"
         }
     }
+    if preload_s3_path:
+        data["sample"]["s3_preload_result_path"] = preload_s3_path
 
     headers = {
         'Accept': 'application/json',
