@@ -28,7 +28,9 @@ def upload(
         url,
         r1,
         r2,
-        preload_s3_path):
+        preload_s3_path,
+        starindex_s3_path,
+        bowtie2index_s3_path):
 
     files = [File(r1), File(r2)]
 
@@ -53,6 +55,10 @@ def upload(
     }
     if preload_s3_path:
         data["sample"]["s3_preload_result_path"] = preload_s3_path
+    if starindex_s3_path:
+        data["sample"]["s3_star_index_path"] = starindex_s3_path
+    if bowtie2index_s3_path:
+        data["sample"]["s3_bowtie2_index_path"] = bowtie2index_s3_path
 
     headers = {
         'Accept': 'application/json',
