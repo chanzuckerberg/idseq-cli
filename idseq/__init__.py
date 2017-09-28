@@ -65,6 +65,16 @@ def main():
         metavar='file',
         type=str,
         help='s3 path for preloading the results for lazy run')
+    parser.add_argument(
+        '--starindex',
+        metavar='file',
+        type=str,
+        help='s3 path for STAR index (tar.gz)')
+    parser.add_argument(
+        '--bowtie2index',
+        metavar='file',
+        type=str,
+        help='s3 path for bowtie2 index (tar.gz)')
 
     try:
         args = parser.parse_args()
@@ -80,7 +90,9 @@ def main():
             args.url,
             args.r1,
             args.r2,
-            args.preload)
+            args.preload,
+            args.starindex,
+            args.bowtie2index)
     except BaseException:
         parser.print_help()
         sys.exit(1)
