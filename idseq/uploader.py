@@ -30,7 +30,15 @@ def upload(
         r2,
         preload_s3_path,
         starindex_s3_path,
-        bowtie2index_s3_path):
+        bowtie2index_s3_path,
+        sample_host,
+        sample_location,
+        sample_date,
+        sample_tissue,
+        sample_template,
+        sample_library,
+        sample_sequencer,
+        sample_notes):
 
     files = [File(r1), File(r2)]
 
@@ -59,6 +67,22 @@ def upload(
         data["sample"]["s3_star_index_path"] = starindex_s3_path
     if bowtie2index_s3_path:
         data["sample"]["s3_bowtie2_index_path"] = bowtie2index_s3_path
+    if sample_host:
+        data["sample"]["sample_host"] = sample_host
+    if sample_location:
+        data["sample"]["sample_location"] = sample_location
+    if sample_date:
+        data["sample"]["sample_date"] = sample_date
+    if sample_tissue:
+        data["sample"]["sample_tissue"] = sample_tissue
+    if sample_template:
+        data["sample"]["sample_template"] = sample_template
+    if sample_library:
+        data["sample"]["sample_library"] = sample_library
+    if sample_sequencer:
+        data["sample"]["sample_sequencer"] = sample_sequencer
+    if sample_notes:
+        data["sample"]["sample_notes"] = sample_notes
 
     headers = {
         'Accept': 'application/json',

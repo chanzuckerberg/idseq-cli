@@ -75,6 +75,46 @@ def main():
         metavar='file',
         type=str,
         help='s3 path for bowtie2 index (tar.gz)')
+    parser.add_argument(
+        '--samplehost',
+        metavar='name',
+        type=str,
+        help='Name of the host the sample was taken from')
+    parser.add_argument(
+        '--samplelocation',
+        metavar='name',
+        type=str,
+        help='Location of sample collection')
+    parser.add_argument(
+        '--sampledate',
+        metavar='date',
+        type=str,
+        help='Date of sample collection')
+    parser.add_argument(
+        '--sampletissue',
+        metavar='name',
+        type=str,
+        help='Tissue sampled')
+    parser.add_argument(
+        '--sampletemplate',
+        metavar='name',
+        type=str,
+        help='Nucleic acid type of assay template (DNA/RNA)')
+    parser.add_argument(
+        '--samplelibrary',
+        metavar='name',
+        type=str,
+        help='Library preparation method')
+    parser.add_argument(
+        '--samplesequencer',
+        metavar='name',
+        type=str,
+        help='Sequencing instrument')
+    parser.add_argument(
+        '--samplenotes',
+        metavar='name',
+        type=str,
+        help='Any additional notes about the sample')
 
     try:
         args = parser.parse_args()
@@ -92,7 +132,15 @@ def main():
             args.r2,
             args.preload,
             args.starindex,
-            args.bowtie2index)
+            args.bowtie2index,
+            args.samplehost,
+            args.samplelocation,
+            args.sampledate,
+            args.sampletissue,
+            args.sampletemplate,
+            args.samplelibrary,
+            args.samplesequencer,
+            args.samplenotes)
     except BaseException:
         parser.print_help()
         sys.exit(1)
