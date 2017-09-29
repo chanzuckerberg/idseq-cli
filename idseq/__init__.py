@@ -113,7 +113,7 @@ def main():
     parser.add_argument(
         '--samplenotes',
         metavar='name',
-        type=text,
+        type=str,
         help='Any additional notes about the sample')
 
     try:
