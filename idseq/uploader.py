@@ -38,7 +38,8 @@ def upload(
         sample_template,
         sample_library,
         sample_sequencer,
-        sample_notes):
+        sample_notes,
+        sample_memory):
 
     files = [File(r1), File(r2)]
 
@@ -83,6 +84,8 @@ def upload(
         data["sample"]["sample_sequencer"] = sample_sequencer
     if sample_notes:
         data["sample"]["sample_notes"] = sample_notes
+    if sample_memory:
+        data["sample"]["sample_memory"] = sample_memory
 
     headers = {
         'Accept': 'application/json',
