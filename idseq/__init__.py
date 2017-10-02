@@ -115,6 +115,11 @@ def main():
         metavar='name',
         type=str,
         help='Any additional notes about the sample')
+    parser.add_argument(
+        '--samplememory',
+        metavar='value',
+        type=int,
+        help='Memory requirement in MB')
 
     try:
         args = parser.parse_args()
@@ -140,7 +145,8 @@ def main():
             args.sampletemplate,
             args.samplelibrary,
             args.samplesequencer,
-            args.samplenotes)
+            args.samplenotes,
+            args.samplememory)
     except BaseException:
         parser.print_help()
         sys.exit(1)
