@@ -85,7 +85,7 @@ def upload(
     if sample_notes:
         data["sample"]["sample_notes"] = sample_notes
     if sample_memory:
-        data["sample"]["sample_memory"] = sample_memory
+        data["sample"]["sample_memory"] = int(sample_memory)
 
     headers = {
         'Accept': 'application/json',
