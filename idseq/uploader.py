@@ -103,7 +103,7 @@ def upload(
     }
 
     resp = requests.post(
-        'http://' + url + '/samples.json',
+        url + '/samples.json',
         data=json.dumps(data),
         headers=headers)
 
