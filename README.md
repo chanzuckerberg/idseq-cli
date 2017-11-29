@@ -22,3 +22,12 @@ Here is a realistic example:
 idseq -t idseq1234 -p 'Awesome Project' -s 'Nice Sample' -u localhost:3000 -e fake@example.com --r1 s3://czbiohub-infectious-disease/RR004/RR004_water_2_S23/RR004_water_2_S23_R1_001.fastq.gz --r2 s3://czbiohub-infectious-disease/RR004/RR004_water_2_S23/RR004_water_2_S23_R2_001.fastq.gz
 
 ```
+
+Another example:
+
+```
+idseq -p Water -s 'no host test' -u localhost:3000 -e xyz@chanzuckerberg.com -t abcxyz --r1 s3://czbiohub-infectious-disease/host_pre_subtracted/cMAL/Sample_cMAL_MP3304_CSF/retained-NR.retained-NT.filter.unmapped.cdhit.MP3304-23_S26_L002.fasta --preload s3://czbiohub-infectious-disease/host_pre_subtracted/cMAL/Sample_cMAL_MP3304_CSF --host_id 5 --job_queue idseq_alpha_stg1
+
+```
+
+
