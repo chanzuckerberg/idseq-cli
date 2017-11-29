@@ -5,7 +5,7 @@ from idseq import uploader
 
 
 def validate_file(path, name):
-    pattern = ".+\.fastq\.gz"
+    pattern = ".+\.(fastq|fasta)(\.gz|$)"
     if not re.search(pattern, path):
         print(
             "ERROR: %s (%s) file does not appear to be a fastq.gz file." %
@@ -58,7 +58,6 @@ def main():
         '--r2',
         metavar='file',
         type=str,
-        required=True,
         help='second gziped fastq file path. could be a local file or s3 path')
     parser.add_argument(
         '--preload',
@@ -120,12 +119,23 @@ def main():
         metavar='value',
         type=int,
         help='Memory requirement in MB')
+    parser.add_argument(
+        '--host_id',
+        metavar='value',
+        type=int,
+        help='Host Genome Id')
+    parser.add_argument(
+        '--job_queue',
+        metavar='name',
+        type=str,
+        help='Job Queue')
 
     try:
         args = parser.parse_args()
 
         validate_file(args.r1, 'R1')
-        validate_file(args.r2, 'R2')
+        if args.r2:
+            validate_file(args.r2, 'R2')
 
         uploader.upload(
             args.sample_name,
@@ -146,7 +156,10 @@ def main():
             args.samplelibrary,
             args.samplesequencer,
             args.samplenotes,
-            args.samplememory)
+            args.samplememory,
+            args.host_id,
+            args.job_queue)
+
     except BaseException:
         parser.print_help()
         sys.exit(1)

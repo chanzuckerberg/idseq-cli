@@ -39,11 +39,15 @@ def upload(
         sample_library,
         sample_sequencer,
         sample_notes,
-        sample_memory):
+        sample_memory,
+        host_id,
+        job_queue):
 
-    files = [File(r1), File(r2)]
+    files = [File(r1)]
+    if r2:
+        files.append(File(r2))
 
-    if files[0].source_type() != files[1].source_type():
+    if r2 and files[0].source_type() != files[1].source_type():
         print("ERROR: input files must be same type")
         raise
 
@@ -86,6 +90,10 @@ def upload(
         data["sample"]["sample_notes"] = sample_notes
     if sample_memory:
         data["sample"]["sample_memory"] = int(sample_memory)
+    if host_id:
+        data["sample"]["host_genome_id"] = int(host_id)
+    if job_queue:
+        data["sample"]["job_queue"] = job_queue
 
     headers = {
         'Accept': 'application/json',
@@ -95,7 +103,7 @@ def upload(
     }
 
     resp = requests.post(
-        'http://' + url + '/samples.json',
+        url + '/samples.json',
         data=json.dumps(data),
         headers=headers)
 
