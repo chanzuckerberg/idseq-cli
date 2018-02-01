@@ -134,12 +134,8 @@ def upload(
         }
 
         resp = requests.put(
-            'http://%s/samples/%d.json' %
+            '%s/samples/%d.json' %
             (url, data['id']), data=json.dumps(update), headers=headers)
-
-        requests.put(
-            'http://%s/samples/%d/kickoff_pipeline' % (url, data['id']),
-            headers={ 'X-User-Email': email, 'X-User-Token': token })
 
         if resp.status_code == 200:
             print("success")
