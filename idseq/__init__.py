@@ -130,7 +130,8 @@ def main():
         type=str,
         help='Job Queue')
 
-    try:
+    #try:
+    if True:
         args = parser.parse_args()
 
         validate_file(args.r1, 'R1')
@@ -159,7 +160,8 @@ def main():
             args.samplememory,
             args.host_id,
             args.job_queue)
-
+    '''
     except BaseException:
         parser.print_help()
         sys.exit(1)
+    '''

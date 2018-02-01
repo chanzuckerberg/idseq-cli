@@ -137,6 +137,10 @@ def upload(
             'http://%s/samples/%d.json' %
             (url, data['id']), data=json.dumps(update), headers=headers)
 
+        requests.put(
+            'http://%s/samples/%d/kickoff_pipeline' %
+            (url, data['id']), headers=headers)
+
         if resp.status_code == 200:
             print("success")
         else:
