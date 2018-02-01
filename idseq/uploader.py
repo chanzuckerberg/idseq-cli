@@ -134,7 +134,7 @@ def upload(
         }
 
         resp = requests.put(
-            'http://%s/samples/%d.json' %
+            '%s/samples/%d.json' %
             (url, data['id']), data=json.dumps(update), headers=headers)
 
         if resp.status_code == 200:
