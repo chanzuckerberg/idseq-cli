@@ -5,10 +5,10 @@ from idseq import uploader
 
 
 def validate_file(path, name):
-    pattern = ".+\.(fastq|fasta)(\.gz|$)"
+    pattern = ".+\.(fastq|fq|fasta|fa)(\.gz|$)"
     if not re.search(pattern, path):
         print(
-            "ERROR: %s (%s) file does not appear to be a fastq.gz file." %
+            "ERROR: %s (%s) file does not appear to be a fastq or fasta file." %
             (name, path))
         print("ERROR: Basename expected to match regex '%s'" % pattern)
         raise
@@ -16,7 +16,7 @@ def validate_file(path, name):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Submit a sample to idseq. (Only accept paired gzipped fastq files)')
+        description='Submit a sample to idseq. (Accepts fastq or fasta files, single or paired, gzipped or not.)')
 
     parser.add_argument(
         '-p',
@@ -53,12 +53,12 @@ def main():
         metavar='file',
         type=str,
         required=True,
-        help='first gziped fastq file path. could be a local file or s3 path')
+        help='read 1 file path. could be a local file or s3 path')
     parser.add_argument(
         '--r2',
         metavar='file',
         type=str,
-        help='second gziped fastq file path. could be a local file or s3 path')
+        help='read 2 file path (optional). could be a local file or s3 path')
     parser.add_argument(
         '--preload',
         metavar='file',
