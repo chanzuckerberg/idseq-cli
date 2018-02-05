@@ -125,6 +125,11 @@ def main():
         type=int,
         help='Host Genome Id')
     parser.add_argument(
+        '--host_genome_name',
+        metavar='name',
+        type=str,
+        help='Host Genome Name')
+    parser.add_argument(
         '--job_queue',
         metavar='name',
         type=str,
@@ -157,4 +162,5 @@ def main():
         args.samplenotes,
         args.samplememory,
         args.host_id,
+        args.host_genome_name,
         args.job_queue)
