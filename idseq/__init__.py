@@ -128,6 +128,7 @@ def main():
         '--host_genome_name',
         metavar='name',
         type=str,
+        default="Human",
         help='Host Genome Name')
     parser.add_argument(
         '--job_queue',
