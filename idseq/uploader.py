@@ -122,7 +122,7 @@ def upload(
         print("uploading %d files" % l)
 
         for i, file in enumerate(data['input_files']):
-            with Tqio(file['name'], i, l) as f:
+            with Tqio(file['source'], i, l) as f:
                 requests.put(file['presigned_url'], data=f)
 
         update = {
