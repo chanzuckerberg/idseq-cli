@@ -41,6 +41,7 @@ def upload(
         sample_notes,
         sample_memory,
         host_id,
+        host_genome_name,
         job_queue):
 
     files = [File(r1)]
@@ -92,6 +93,8 @@ def upload(
         data["sample"]["sample_memory"] = int(sample_memory)
     if host_id:
         data["sample"]["host_genome_id"] = int(host_id)
+    if host_genome_name:
+        data["sample"]["host_genome_name"] = host_genome_name
     if job_queue:
         data["sample"]["job_queue"] = job_queue
 
@@ -122,7 +125,7 @@ def upload(
         print("uploading %d files" % l)
 
         for i, file in enumerate(data['input_files']):
-            with Tqio(file['name'], i, l) as f:
+            with Tqio(file['source'], i, l) as f:
                 requests.put(file['presigned_url'], data=f)
 
         update = {
