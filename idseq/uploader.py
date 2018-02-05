@@ -31,6 +31,7 @@ def upload(
         preload_s3_path,
         starindex_s3_path,
         bowtie2index_s3_path,
+        sample_host,
         sample_location,
         sample_date,
         sample_tissue,
