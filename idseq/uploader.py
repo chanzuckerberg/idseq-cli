@@ -31,7 +31,6 @@ def upload(
         preload_s3_path,
         starindex_s3_path,
         bowtie2index_s3_path,
-        sample_host,
         sample_location,
         sample_date,
         sample_tissue,
@@ -41,6 +40,7 @@ def upload(
         sample_notes,
         sample_memory,
         host_id,
+        host_genome_name,
         job_queue):
 
     files = [File(r1)]
@@ -72,8 +72,6 @@ def upload(
         data["sample"]["s3_star_index_path"] = starindex_s3_path
     if bowtie2index_s3_path:
         data["sample"]["s3_bowtie2_index_path"] = bowtie2index_s3_path
-    if sample_host:
-        data["sample"]["sample_host"] = sample_host
     if sample_location:
         data["sample"]["sample_location"] = sample_location
     if sample_date:
@@ -92,6 +90,8 @@ def upload(
         data["sample"]["sample_memory"] = int(sample_memory)
     if host_id:
         data["sample"]["host_genome_id"] = int(host_id)
+    if host_genome_name:
+        data["sample"]["host_genome_name"] = host_genome_name
     if job_queue:
         data["sample"]["job_queue"] = job_queue
 
