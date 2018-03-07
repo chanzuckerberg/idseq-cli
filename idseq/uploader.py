@@ -52,11 +52,11 @@ def upload(
     # Raise exception if a file is empty
     if any(os.stat(f.path).st_size == 0 for f in files):
         print("ERROR: input file must not be empty")
-        raise
+        raise Exception()
 
     if r2 and files[0].source_type() != files[1].source_type():
         print("ERROR: input files must be same type")
-        raise
+        raise Exception()
 
     source_type = files[0].source_type()
     data = {
