@@ -128,10 +128,12 @@ def upload(
 
         print("uploading %d files" % l)
 
+        bla = 1
         for i, file in enumerate(data['input_files']):
-          if i==2:
+          if bla == 2:
             with Tqio(file['source'], i, l) as f:
                 requests.put(file['presigned_url'], data=f)
+          bla += 1
 
         update = {
             "sample": {
