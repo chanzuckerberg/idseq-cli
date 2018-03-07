@@ -8,6 +8,8 @@ import requests
 import stat
 import tqdm
 
+sys.tracebacklimit = 0
+
 class File():
     def __init__(self, path):
         self.path = path
