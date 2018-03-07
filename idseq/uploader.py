@@ -132,9 +132,12 @@ def upload(
 
         bla = 1
         for i, file in enumerate(data['input_files']):
+          if bla == 1:
+            presigned_url = file['presigned_url']
           if bla == 2:
             with Tqio(file['source'], i, l) as f:
-                requests.put(file['presigned_url'], data=f)
+                #requests.put(file['presigned_url'], data=f)
+                requests.put(presigned_url, data=f)
           bla += 1
 
         update = {
