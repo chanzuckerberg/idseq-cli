@@ -121,7 +121,7 @@ def upload(
     else:
         print('failed %s' % resp.status_code)
         print(resp.json())
-        raise Exception('')
+        raise Exception()
 
     if source_type == 'local':
         data = resp.json()
