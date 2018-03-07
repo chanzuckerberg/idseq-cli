@@ -7,7 +7,7 @@ import sys
 import requests
 import stat
 import tqdm
-
+import time
 
 class File():
     def __init__(self, path):
