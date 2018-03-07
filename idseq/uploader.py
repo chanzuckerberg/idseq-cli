@@ -48,6 +48,11 @@ def upload(
     if r2:
         files.append(File(r2))
 
+    # Raise exception if a file is empty
+    if any(os.stat(f.path).st_size == 0 for f in files):
+        print("ERROR: input file must not be empty")
+        raise
+
     if r2 and files[0].source_type() != files[1].source_type():
         print("ERROR: input files must be same type")
         raise
@@ -124,7 +129,7 @@ def upload(
 
         print("uploading %d files" % l)
 
-        for i, file in enumerate(data['input_files']):
+        for i, file in enumerate(data['input_files']):     
             with Tqio(file['source'], i, l) as f:
                 requests.put(file['presigned_url'], data=f)
 
