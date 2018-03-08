@@ -84,6 +84,9 @@ def upload(
             "status": "created"
         }
     }
+
+    print(data)
+
     if preload_s3_path:
         data["sample"]["s3_preload_result_path"] = preload_s3_path
     if starindex_s3_path:
