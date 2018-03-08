@@ -49,8 +49,10 @@ def upload(
     if r2:
         files.append(File(r2))
 
+    source_type = files[0].source_type()
+
     # Raise exception if a file is empty
-    if any(os.stat(f.path).st_size == 0 for f in files):
+    if source_type=='local' and any(os.stat(f.path).st_size == 0 for f in files):
         print("ERROR: input file must not be empty")
         raise Exception()
 
@@ -58,7 +60,6 @@ def upload(
         print("ERROR: input files must be same type")
         raise Exception()
 
-    source_type = files[0].source_type()
     data = {
         "sample": {
             "name": sample_name,
