@@ -23,7 +23,7 @@ class File():
 
     def parts(self):
         # Check if any file is over 5 GB and, if so, chunk
-        if source_type == 'local' and os.path.getsize(self.path) > 5e9:
+        if self.source_type() == 'local' and os.path.getsize(self.path) > 5e9:
             part_prefix = self.path + "__AWS-MULTI-PART-"
             subprocess.check_output("split --numeric-suffixes -b 5GB %s %s" % (self.path, part_prefix), shell=True)
             return subprocess.check_output("ls %s*" % part_prefix, shell=True).split()
