@@ -28,7 +28,7 @@ class File():
             subprocess.check_output("split --numeric-suffixes -b 5GB %s %s" % (self.path, part_prefix), shell=True)
             return subprocess.check_output("ls %s*" % part_prefix, shell=True).splitlines()
         else:
-            return self.path
+            return [self.path]
 
 def upload(
         sample_name,
