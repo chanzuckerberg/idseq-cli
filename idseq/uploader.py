@@ -52,7 +52,7 @@ def upload(
     source_type = files[0].source_type()
 
     # Raise exception if a file is empty
-    if source_type=='local' and any(os.stat(f.path).st_size == 0 for f in files):
+    if source_type == 'local' and any(os.stat(f.path).st_size == 0 for f in files):
         print("ERROR: input file must not be empty")
         raise Exception()
 
