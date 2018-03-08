@@ -143,11 +143,12 @@ def upload(
 
         for raw_input_file in data['input_files']:
             presigned_urls = raw_input_file['presigned_url'].split(", ")
-            input_parts = raw_input_file.parts()
+            input_parts = raw_input_file.parts().split(", ")
             for i, file in enumerate(input_parts):
                 presigned_url = presigned_urls[i]
-                with Tqio(file['source'], i, l) as f:
+                with Tqio(file, i, l) as f:
                     requests.put(presigned_url, data=f)
+                subprocess.check_output("rm %s" % file, shell=True)
 
         update = {
             "sample": {
