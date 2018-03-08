@@ -141,11 +141,14 @@ def upload(
 
         print("uploading %d files" % l)
 
-        for i, file in enumerate(data['input_files']):
-            presigned_urls = file['presigned_url'].split(", ")
-            for presigned_url in presigned_urls:
-                with Tqio(file['source'], i, l) as f:
-                    requests.put(presigned_url, data=f)
+        input_files = [part for f in data['input_files'] for part in f.parts()]
+        for raw_input_file in data['input_files']:
+            presigned_urls = raw_input_file['presigned_url'].split(", ")
+            input_parts = raw_input_file.parts()
+            for i, file in enumerate(input_parts):
+                presigned_url = presigned_urls[0]
+                    with Tqio(file['source'], i, l) as f:
+                        requests.put(presigned_url, data=f)
 
         update = {
             "sample": {
