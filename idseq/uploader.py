@@ -8,6 +8,7 @@ import requests
 import stat
 import tqdm
 
+sys.tracebacklimit = 0
 
 class File():
     def __init__(self, path):
@@ -48,11 +49,17 @@ def upload(
     if r2:
         files.append(File(r2))
 
+    source_type = files[0].source_type()
+
+    # Raise exception if a file is empty
+    if source_type == 'local' and any(os.stat(f.path).st_size == 0 for f in files):
+        print("ERROR: input file must not be empty")
+        raise Exception()
+
     if r2 and files[0].source_type() != files[1].source_type():
         print("ERROR: input files must be same type")
-        raise
+        raise Exception()
 
-    source_type = files[0].source_type()
     data = {
         "sample": {
             "name": sample_name,
@@ -115,7 +122,7 @@ def upload(
     else:
         print('failed %s' % resp.status_code)
         print(resp.json())
-        raise
+        raise Exception()
 
     if source_type == 'local':
         data = resp.json()
