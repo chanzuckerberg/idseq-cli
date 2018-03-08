@@ -7,7 +7,9 @@ import sys
 import requests
 import stat
 import tqdm
+import subprocess
 
+sys.tracebacklimit = 0
 
 class File():
     def __init__(self, path):
@@ -19,6 +21,14 @@ class File():
         elif stat.S_ISREG(os.stat(self.path).st_mode):
             return 'local'
 
+    def parts(self):
+        # Check if any file is over 5 GB and, if so, chunk
+        if source_type == 'local' and os.path.getsize(self.path) > 5e9:
+            part_prefix = self.path + "__AWS-MULTI-PART-"
+            subprocess.check_output("split --numeric-suffixes -b 5GB %s %s" % (self.path, part_prefix), shell=True)
+            return subprocess.check_output("ls %s*" % part_prefix, shell=True)).split()
+        else:
+            return self.path
 
 def upload(
         sample_name,
@@ -48,11 +58,17 @@ def upload(
     if r2:
         files.append(File(r2))
 
+    source_type = files[0].source_type()
+
+    # Raise exception if a file is empty
+    if source_type == 'local' and any(os.stat(f.path).st_size == 0 for f in files):
+        print("ERROR: input file must not be empty")
+        raise Exception()
+
     if r2 and files[0].source_type() != files[1].source_type():
         print("ERROR: input files must be same type")
-        raise
+        raise Exception()
 
-    source_type = files[0].source_type()
     data = {
         "sample": {
             "name": sample_name,
@@ -61,7 +77,8 @@ def upload(
                 {
                     "name": os.path.basename(f.path),
                     "source": f.path,
-                    "source_type": f.source_type()
+                    "source_type": f.source_type(),
+                    "parts": ", ".join(f.parts()),
                 } for f in files
             ],
             "status": "created"
@@ -115,7 +132,7 @@ def upload(
     else:
         print('failed %s' % resp.status_code)
         print(resp.json())
-        raise
+        raise Exception()
 
     if source_type == 'local':
         data = resp.json()
@@ -125,8 +142,10 @@ def upload(
         print("uploading %d files" % l)
 
         for i, file in enumerate(data['input_files']):
-            with Tqio(file['source'], i, l) as f:
-                requests.put(file['presigned_url'], data=f)
+            presigned_urls = file['presigned_url'].split(", ")
+            for presigned_url in presigned_urls:
+                with Tqio(file['source'], i, l) as f:
+                    requests.put(presigned_url, data=f)
 
         update = {
             "sample": {
