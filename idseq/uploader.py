@@ -13,6 +13,7 @@ sys.tracebacklimit = 0
 tqdm.monitor_interval = 0
 
 MAX_PART_SIZE_IN_GB = 5
+PART_SUFFIX = "__AWS-MULTI-PART-"
 
 class File():
     def __init__(self, path):
@@ -27,7 +28,7 @@ class File():
     def parts(self):
         # Check if any file is over MAX_PART_SIZE_IN_GB and, if so, chunk
         if self.source_type() == 'local' and os.path.getsize(self.path) > MAX_PART_SIZE_IN_GB * 1e9:
-            part_prefix = self.path + "__AWS-MULTI-PART-"
+            part_prefix = self.path + PART_SUFFIX
             print("splitting large file into %d GB chunks..." % MAX_PART_SIZE_IN_GB)
             subprocess.check_output("split --numeric-suffixes -b %dGB %s %s" % (MAX_PART_SIZE_IN_GB, self.path, part_prefix), shell=True)
             return subprocess.check_output("ls %s*" % part_prefix, shell=True).splitlines()
@@ -155,7 +156,8 @@ def upload(
                 presigned_url = presigned_urls[i]
                 with Tqio(file, i, l) as f:
                     requests.put(presigned_url, data=f)
-                subprocess.check_output("rm %s" % file, shell=True)
+                if PART_SUFFIX in file:
+                    subprocess.check_output("rm %s" % file, shell=True)
 
         update = {
             "sample": {
