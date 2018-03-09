@@ -7,8 +7,13 @@ import sys
 import requests
 import stat
 import tqdm
+import subprocess
 
 sys.tracebacklimit = 0
+tqdm.monitor_interval = 0
+
+MAX_PART_SIZE_IN_GB = 5
+PART_SUFFIX = "__AWS-MULTI-PART-"
 
 class File():
     def __init__(self, path):
@@ -20,6 +25,16 @@ class File():
         elif stat.S_ISREG(os.stat(self.path).st_mode):
             return 'local'
 
+    def parts(self):
+        # Check if any file is over MAX_PART_SIZE_IN_GB and, if so, chunk
+        if self.source_type() == 'local' and os.path.getsize(self.path) > MAX_PART_SIZE_IN_GB * 1e9:
+            part_prefix = self.path + PART_SUFFIX
+            print("splitting large file into %d GB chunks..." % MAX_PART_SIZE_IN_GB)
+            subprocess.check_output("split --numeric-suffixes -b %dGB %s %s" %
+                                    (MAX_PART_SIZE_IN_GB, self.path, part_prefix), shell=True)
+            return subprocess.check_output("ls %s*" % part_prefix, shell=True).splitlines()
+        else:
+            return [self.path]
 
 def upload(
         sample_name,
@@ -68,12 +83,16 @@ def upload(
                 {
                     "name": os.path.basename(f.path),
                     "source": f.path,
-                    "source_type": f.source_type()
+                    "source_type": f.source_type(),
+                    "parts": ", ".join(f.parts()),
                 } for f in files
             ],
             "status": "created"
         }
     }
+
+    print(data)
+
     if preload_s3_path:
         data["sample"]["s3_preload_result_path"] = preload_s3_path
     if starindex_s3_path:
@@ -131,9 +150,17 @@ def upload(
 
         print("uploading %d files" % l)
 
-        for i, file in enumerate(data['input_files']):
-            with Tqio(file['source'], i, l) as f:
-                requests.put(file['presigned_url'], data=f)
+        for raw_input_file in data['input_files']:
+            presigned_urls = raw_input_file['presigned_url'].split(", ")
+            input_parts = raw_input_file["parts"].split(", ")
+            for i, file in enumerate(input_parts):
+                presigned_url = presigned_urls[i]
+                with Tqio(file, i, l) as f:
+                    requests.put(presigned_url, data=f)
+                print("Note to user: please ignore any"
+                      "'RuntimeError: Set changed size during iteration' message")
+                if PART_SUFFIX in file:
+                    subprocess.check_output("rm %s" % file, shell=True)
 
         update = {
             "sample": {
