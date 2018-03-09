@@ -25,6 +25,7 @@ class File():
         # Check if any file is over 5 GB and, if so, chunk
         if self.source_type() == 'local' and os.path.getsize(self.path) > 5e9:
             part_prefix = self.path + "__AWS-MULTI-PART-"
+            print("splitting large file...")
             subprocess.check_output("split --numeric-suffixes -b 5GB %s %s" % (self.path, part_prefix), shell=True)
             return subprocess.check_output("ls %s*" % part_prefix, shell=True).splitlines()
         else:
@@ -146,7 +147,7 @@ def upload(
 
         for raw_input_file in data['input_files']:
             presigned_urls = raw_input_file['presigned_url'].split(", ")
-            input_parts = raw_input_file.parts().split(", ")
+            input_parts = raw_input_file.parts.split(", ")
             for i, file in enumerate(input_parts):
                 presigned_url = presigned_urls[i]
                 with Tqio(file, i, l) as f:
