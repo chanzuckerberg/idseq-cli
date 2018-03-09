@@ -10,6 +10,9 @@ import tqdm
 import subprocess
 
 sys.tracebacklimit = 0
+tqdm.monitor_interval = 0
+
+MAX_PART_SIZE_IN_GB = 5
 
 class File():
     def __init__(self, path):
@@ -22,11 +25,11 @@ class File():
             return 'local'
 
     def parts(self):
-        # Check if any file is over 5 GB and, if so, chunk
-        if self.source_type() == 'local' and os.path.getsize(self.path) > 5e9:
+        # Check if any file is over MAX_PART_SIZE_IN_GB and, if so, chunk
+        if self.source_type() == 'local' and os.path.getsize(self.path) > MAX_PART_SIZE_IN_GB * 1e9:
             part_prefix = self.path + "__AWS-MULTI-PART-"
-            print("splitting large file...")
-            subprocess.check_output("split --numeric-suffixes -b 5GB %s %s" % (self.path, part_prefix), shell=True)
+            print("splitting large file into %d GB chunks..." % MAX_PART_SIZE_IN_GB)
+            subprocess.check_output("split --numeric-suffixes -b %dGB %s %s" % (MAX_PART_SIZE_IN_GB, self.path, part_prefix), shell=True)
             return subprocess.check_output("ls %s*" % part_prefix, shell=True).splitlines()
         else:
             return [self.path]
@@ -147,7 +150,7 @@ def upload(
 
         for raw_input_file in data['input_files']:
             presigned_urls = raw_input_file['presigned_url'].split(", ")
-            input_parts = raw_input_file.parts.split(", ")
+            input_parts = raw_input_file["parts"].split(", ")
             for i, file in enumerate(input_parts):
                 presigned_url = presigned_urls[i]
                 with Tqio(file, i, l) as f:
