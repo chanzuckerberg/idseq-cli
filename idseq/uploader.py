@@ -31,7 +31,7 @@ class File():
             part_prefix = self.path + PART_SUFFIX
             print("splitting large file into %d GB chunks..." % MAX_PART_SIZE_IN_GB)
             subprocess.check_output("split --numeric-suffixes -b %dGB %s %s" %
-                (MAX_PART_SIZE_IN_GB, self.path, part_prefix), shell=True)
+                                    (MAX_PART_SIZE_IN_GB, self.path, part_prefix), shell=True)
             return subprocess.check_output("ls %s*" % part_prefix, shell=True).splitlines()
         else:
             return [self.path]
