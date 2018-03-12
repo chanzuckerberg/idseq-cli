@@ -5,7 +5,7 @@ from idseq import uploader
 
 
 def validate_file(path, name):
-    pattern = ".+\.(fastq|fq|fasta|fa)(\.gz|$)"
+    pattern = uploader.INPUT_REGEX
     if not re.search(pattern, path):
         print(
             "ERROR: %s (%s) file does not appear to be a fastq or fasta file." %
@@ -30,7 +30,6 @@ def main():
         '--sample-name',
         metavar='name',
         type=str,
-        required=True,
         help='Sample name. It should be unique within a project')
     parser.add_argument('-u', '--url', metavar='url', type=str, required=True,
                         help='idseq website url: i.e. dev.idseq.net')
@@ -52,7 +51,6 @@ def main():
         '--r1',
         metavar='file',
         type=str,
-        required=True,
         help='read 1 file path. could be a local file or s3 path')
     parser.add_argument(
         '--r2',
@@ -64,6 +62,11 @@ def main():
         metavar='file',
         type=str,
         help='s3 path for preloading the results for lazy run')
+    parser.add_argument(
+        '--bulk',
+        metavar='file',
+        type=str,
+        help='Full path to input folder for bulk upload')
     parser.add_argument(
         '--starindex',
         metavar='file',
@@ -138,6 +141,8 @@ def main():
 
     args = parser.parse_args()
 
+    print uploader.detect_samples(args.bulk)
+
     validate_file(args.r1, 'R1')
     if args.r2:
         validate_file(args.r2, 'R2')
@@ -151,6 +156,7 @@ def main():
         args.r1,
         args.r2,
         args.preload,
+        args.bulk,
         args.starindex,
         args.bowtie2index,
         args.samplehost,

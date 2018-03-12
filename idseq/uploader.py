@@ -3,15 +3,18 @@
 import io
 import json
 import os
+import glob
 import sys
 import requests
 import stat
 import tqdm
 import subprocess
+import re
 
 sys.tracebacklimit = 0
 tqdm.monitor_interval = 0
 
+INPUT_REGEX = ".+\.(fastq|fq|fasta|fa)(\.gz|$)"
 MAX_PART_SIZE_IN_GB = 5
 PART_SUFFIX = "__AWS-MULTI-PART-"
 
@@ -35,6 +38,11 @@ class File():
             return subprocess.check_output("ls %s*" % part_prefix, shell=True).splitlines()
         else:
             return [self.path]
+
+def detect_samples(bulk):
+    files = os.listdir(bulk)
+    input_files = [os.path.join(bulk, f) for f in files if re.search(INPUT_REGEX, files)]
+    return detect_samples
 
 def upload(
         sample_name,
