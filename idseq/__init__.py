@@ -143,7 +143,7 @@ def main():
     args = parser.parse_args()
 
     print "bulk samples"
-    print uploader.detect_samples(args.bulk)[0]
+    print uploader.detect_samples(args.bulk)
 
     validate_file(args.r1, 'R1')
     if args.r2:

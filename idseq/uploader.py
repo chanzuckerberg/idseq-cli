@@ -41,7 +41,7 @@ class File():
 
 def detect_samples(bulk):
     files = os.listdir(bulk)
-    input_files = [os.path.join(bulk, f) for f in files if re.search(INPUT_REGEX, files)]
+    input_files = [os.path.join(bulk, f) for f in files if re.search(INPUT_REGEX, f)]
     return detect_samples
 
 def upload(
