@@ -42,7 +42,7 @@ class File():
 
 def detect_files(path, level=1):
     wildcards = "/*" * level
-    return [f for f in glob.glob(path + wildcards) if re.search(INPUT_REGEX, f)]
+    return [f for f in glob.glob(path + wildcards) if re.search(INPUT_REGEX, f) and os.stat(f).st_size > 0]
 
 def detect_samples(path):
     files_level1 = detect_files(path, level=1)
