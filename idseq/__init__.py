@@ -67,7 +67,7 @@ def main():
         '--bulk',
         metavar='file',
         type=str,
-        help='Full path to input folder for bulk upload')
+        help='Input folder for bulk upload')
     parser.add_argument(
         '--starindex',
         metavar='file',
@@ -142,13 +142,43 @@ def main():
 
     args = parser.parse_args()
 
-    print "bulk samples"
-    print uploader.detect_samples(args.bulk)
+    # Bulk upload
+    if args.bulk:
+        samples2files = uploader.detect_samples(args.bulk)
+        print samples2files
+        for sample, files in samples2files.iteritems():
+            sorted_files = sorted(files)
+            if len(sorted_files) < 2:
+                sorted_files += [None]
+            uploader.upload(
+                sample,
+                args.project,
+                args.email,
+                args.token,
+                args.url,
+                files[0],
+                files[1],
+                args.preload,
+                args.starindex,
+                args.bowtie2index,
+                args.samplehost,
+                args.samplelocation,
+                args.sampledate,
+                args.sampletissue,
+                args.sampletemplate,
+                args.samplelibrary,
+                args.samplesequencer,
+                args.samplenotes,
+                args.samplememory,
+                args.host_id,
+                args.host_genome_name,
+                args.job_queue)
+        return
 
+    # Single upload
     validate_file(args.r1, 'R1')
     if args.r2:
         validate_file(args.r2, 'R2')
-
     uploader.upload(
         args.sample_name,
         args.project,
@@ -158,7 +188,6 @@ def main():
         args.r1,
         args.r2,
         args.preload,
-        args.bulk,
         args.starindex,
         args.bowtie2index,
         args.samplehost,

@@ -14,7 +14,8 @@ import re
 sys.tracebacklimit = 0
 tqdm.monitor_interval = 0
 
-INPUT_REGEX = ".+\.(fastq|fq|fasta|fa)(\.gz|$)"
+INPUT_REGEX = "(.+)\.(fastq|fq|fasta|fa)(\.gz|$)"
+PAIRED_REGEX = "(.+)(_R\d)(_001)?\.(fastq|fq|fasta|fa)(\.gz|$)"
 MAX_PART_SIZE_IN_GB = 5
 PART_SUFFIX = "__AWS-MULTI-PART-"
 
@@ -39,10 +40,28 @@ class File():
         else:
             return [self.path]
 
-def detect_samples(bulk):
-    files = os.listdir(bulk)
-    input_files = [os.path.join(bulk, f) for f in files if re.search(INPUT_REGEX, f)]
-    return detect_samples
+def detect_files(path, level=1):
+    wildcards = "/*" * level
+    return [f for f in glob.glob(path + wildcards) if re.search(INPUT_REGEX, f)]
+
+def detect_samples(path):
+    files_level1 = detect_files(path, level=1)
+    files_level2 = detect_files(path, level=2)
+    if not files_level1 and not files_level2:
+        print "No fastq/fasta files found"
+        raise Exception()
+    samples2files = {}
+    if len(files_level1) >= len(files_level2):
+        for f in files_level1:
+            m2 = re.search(PAIRED_REGEX, file_path)
+            m = re.search(INPUT_REGEX, file_path)
+            sample_name = os.path.basename(m2.group(1)) if m2 else os.path.basename(m.group(1))
+            samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
+    else:
+        for f in files_level2:
+            sample_name = os.path.basename(os.path.dirname(f))
+            samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
+    return {k: v for k, v in samples2files.iteritems() if len(v) in [1, 2]}
 
 def upload(
         sample_name,
