@@ -53,8 +53,8 @@ def detect_samples(path):
     samples2files = {}
     if len(files_level1) >= len(files_level2):
         for f in files_level1:
-            m2 = re.search(PAIRED_REGEX, file_path)
-            m = re.search(INPUT_REGEX, file_path)
+            m2 = re.search(PAIRED_REGEX, f)
+            m = re.search(INPUT_REGEX, f)
             sample_name = os.path.basename(m2.group(1)) if m2 else os.path.basename(m.group(1))
             samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
     else:
