@@ -149,8 +149,7 @@ def main():
         for sample, files in samples2files.iteritems():
             if len(files) < 2:
                 files += [None]
-            try:
-                uploader.upload(
+            uploader.upload(
                     sample,
                     args.project,
                     args.email,
@@ -173,8 +172,7 @@ def main():
                     args.host_id,
                     args.host_genome_name,
                     args.job_queue)
-            except:
-                print "Failed to upload %s" % sample
+            print "Failed to upload %s" % sample
 
     else:
         # Single upload

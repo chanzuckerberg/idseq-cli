@@ -176,7 +176,7 @@ def upload(
 
         l = len(data['input_files'])
 
-        print("uploading %d files" % l)
+        print("uploading %d file(s)" % l)
 
         for raw_input_file in data['input_files']:
             presigned_urls = raw_input_file['presigned_url'].split(", ")
