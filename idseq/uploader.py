@@ -88,6 +88,8 @@ def upload(
         host_genome_name,
         job_queue):
 
+    print "Uploading sample %" % sample_name
+
     files = [File(r1)]
     if r2:
         files.append(File(r2))
