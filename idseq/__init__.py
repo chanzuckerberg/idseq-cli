@@ -63,6 +63,7 @@ def main():
         type=str,
         help='s3 path for preloading the results for lazy run')
     parser.add_argument(
+        '-b',
         '--bulk',
         metavar='file',
         type=str,
@@ -141,7 +142,8 @@ def main():
 
     args = parser.parse_args()
 
-    print uploader.detect_samples(args.bulk)
+    print "bulk samples"
+    print uploader.detect_samples(args.bulk)[0]
 
     validate_file(args.r1, 'R1')
     if args.r2:
