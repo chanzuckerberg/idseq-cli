@@ -61,7 +61,8 @@ def detect_samples(path):
         for f in files_level2:
             sample_name = os.path.basename(os.path.dirname(f))
             samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
-    return {k: v for k, v in samples2files.iteritems() if len(v) in [1, 2]}
+    # Sort files (R1 before R2) and remove samples that don't have 1 or 2 files:
+    return {k: sorted(v) for k, v in samples2files.iteritems() if len(v) in [1, 2]}
 
 def upload(
         sample_name,

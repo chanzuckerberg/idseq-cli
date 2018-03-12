@@ -142,22 +142,21 @@ def main():
 
     args = parser.parse_args()
 
-    # Bulk upload
     if args.bulk:
+        # Bulk upload
         samples2files = uploader.detect_samples(args.bulk)
         print samples2files
         for sample, files in samples2files.iteritems():
-            sorted_files = sorted(files)
-            if len(sorted_files) < 2:
-                sorted_files += [None]
+            if len(files) < 2:
+                files += [None]
             uploader.upload(
                 sample,
                 args.project,
                 args.email,
                 args.token,
                 args.url,
-                sorted_files[0],
-                sorted_files[1],
+                files[0],
+                files[1],
                 args.preload,
                 args.starindex,
                 args.bowtie2index,
@@ -173,32 +172,32 @@ def main():
                 args.host_id,
                 args.host_genome_name,
                 args.job_queue)
-        return
 
-    # Single upload
-    validate_file(args.r1, 'R1')
-    if args.r2:
-        validate_file(args.r2, 'R2')
-    uploader.upload(
-        args.sample_name,
-        args.project,
-        args.email,
-        args.token,
-        args.url,
-        args.r1,
-        args.r2,
-        args.preload,
-        args.starindex,
-        args.bowtie2index,
-        args.samplehost,
-        args.samplelocation,
-        args.sampledate,
-        args.sampletissue,
-        args.sampletemplate,
-        args.samplelibrary,
-        args.samplesequencer,
-        args.samplenotes,
-        args.samplememory,
-        args.host_id,
-        args.host_genome_name,
-        args.job_queue)
+    else:
+        # Single upload
+        validate_file(args.r1, 'R1')
+        if args.r2:
+            validate_file(args.r2, 'R2')
+        uploader.upload(
+            args.sample_name,
+            args.project,
+            args.email,
+            args.token,
+            args.url,
+            args.r1,
+            args.r2,
+            args.preload,
+            args.starindex,
+            args.bowtie2index,
+            args.samplehost,
+            args.samplelocation,
+            args.sampledate,
+            args.sampletissue,
+            args.sampletemplate,
+            args.samplelibrary,
+            args.samplesequencer,
+            args.samplenotes,
+            args.samplememory,
+            args.host_id,
+            args.host_genome_name,
+            args.job_queue)
