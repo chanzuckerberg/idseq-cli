@@ -149,29 +149,32 @@ def main():
         for sample, files in samples2files.iteritems():
             if len(files) < 2:
                 files += [None]
-            uploader.upload(
-                sample,
-                args.project,
-                args.email,
-                args.token,
-                args.url,
-                files[0],
-                files[1],
-                args.preload,
-                args.starindex,
-                args.bowtie2index,
-                args.samplehost,
-                args.samplelocation,
-                args.sampledate,
-                args.sampletissue,
-                args.sampletemplate,
-                args.samplelibrary,
-                args.samplesequencer,
-                args.samplenotes,
-                args.samplememory,
-                args.host_id,
-                args.host_genome_name,
-                args.job_queue)
+            try:
+                uploader.upload(
+                    sample,
+                    args.project,
+                    args.email,
+                    args.token,
+                    args.url,
+                    files[0],
+                    files[1],
+                    args.preload,
+                    args.starindex,
+                    args.bowtie2index,
+                    args.samplehost,
+                    args.samplelocation,
+                    args.sampledate,
+                    args.sampletissue,
+                    args.sampletemplate,
+                    args.samplelibrary,
+                    args.samplesequencer,
+                    args.samplenotes,
+                    args.samplememory,
+                    args.host_id,
+                    args.host_genome_name,
+                    args.job_queue)
+            except:
+                print "Failed to upload %s" % sample
 
     else:
         # Single upload
