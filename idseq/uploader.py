@@ -73,7 +73,7 @@ def detect_samples(path):
           "Files can have extensions fastq/fq/fasta/fa "
           "with optionally the additional extension gz.\n"
           "If the folder you specified is flat, "
-          "paired files need to be indicated using the labels "_R1" and "_R2" before the "
+          "paired files need to be indicated using the labels _R1 and _R2 before the "
           "extension, otherwise each file will be treated as a separate sample. Sample names "
           "will be derived from file names with the extensions and any R1/R2 labels trimmed off.\n"
           "Alternatively, your folder can be structured to have one subfolder per sample. "
