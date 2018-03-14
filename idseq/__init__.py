@@ -175,36 +175,34 @@ def main():
                     args.job_queue)
             except:
                 print("Failed to upload %s" % sample)
+        print("\n")
         return
 
-'''
-    else:
-        # Single upload
-        validate_file(args.r1, 'R1')
-        if args.r2:
-            validate_file(args.r2, 'R2')
-        uploader.upload(
-            args.sample_name,
-            args.project,
-            args.email,
-            args.token,
-            args.url,
-            args.r1,
-            args.r2,
-            args.preload,
-            args.starindex,
-            args.bowtie2index,
-            args.samplehost,
-            args.samplelocation,
-            args.sampledate,
-            args.sampletissue,
-            args.sampletemplate,
-            args.samplelibrary,
-            args.samplesequencer,
-            args.samplenotes,
-            args.samplememory,
-            args.host_id,
-            args.host_genome_name,
-            args.job_queue)
-'''
-print("\n")
+    # Single upload
+    validate_file(args.r1, 'R1')
+    if args.r2:
+        validate_file(args.r2, 'R2')
+    uploader.upload(
+        args.sample_name,
+        args.project,
+        args.email,
+        args.token,
+        args.url,
+        args.r1,
+        args.r2,
+        args.preload,
+        args.starindex,
+        args.bowtie2index,
+        args.samplehost,
+        args.samplelocation,
+        args.sampledate,
+        args.sampletissue,
+        args.sampletemplate,
+        args.samplelibrary,
+        args.samplesequencer,
+        args.samplenotes,
+        args.samplememory,
+        args.host_id,
+        args.host_genome_name,
+        args.job_queue)
+    print("\n")
