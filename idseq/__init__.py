@@ -145,7 +145,7 @@ def main():
     if args.bulk:
         # Bulk upload
         samples2files = uploader.detect_samples(args.bulk)
-        print samples2files
+        print(samples2files)
         for sample, files in samples2files.iteritems():
             if len(files) < 2:
                 files += [None]
@@ -174,8 +174,10 @@ def main():
                     args.host_genome_name,
                     args.job_queue)
             except:
-                print "Failed to upload %s" % sample
+                print("Failed to upload %s" % sample)
+            return
 
+'''
     else:
         # Single upload
         validate_file(args.r1, 'R1')
@@ -204,5 +206,5 @@ def main():
             args.host_id,
             args.host_genome_name,
             args.job_queue)
-
-    print "\n"
+'''
+    print("\n")
