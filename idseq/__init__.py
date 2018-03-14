@@ -175,7 +175,7 @@ def main():
                     args.job_queue)
             except:
                 print("Failed to upload %s" % sample)
-        print("\n")
+        print("\nDONE\n")
         return
 
     # Single upload
@@ -205,4 +205,4 @@ def main():
         args.host_id,
         args.host_genome_name,
         args.job_queue)
-    print("\n")
+    print("\nDONE\n")
