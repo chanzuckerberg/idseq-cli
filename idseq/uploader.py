@@ -44,25 +44,42 @@ def detect_files(path, level=1):
     wildcards = "/*" * level
     return [f for f in glob.glob(path + wildcards) if re.search(INPUT_REGEX, f) and os.stat(f).st_size > 0]
 
+def clean_samples2files(samples2files):
+    # Sort files (R1 before R2) and remove samples that don't have 1 or 2 files:
+    return {k: sorted(v) for k, v in samples2files.iteritems() if len(v) in [1, 2]}
+
 def detect_samples(path):
-    files_level1 = detect_files(path, level=1)
-    files_level2 = detect_files(path, level=2)
-    if not files_level1 and not files_level2:
-        print "No fastq/fasta files found"
-        raise Exception()
     samples2files = {}
-    if len(files_level1) >= len(files_level2):
+    # First try to find top-level files in the folder.
+    # Paired files for the same sample must be labeled with R1 and R2 as indicated in PAIRED_REGEX
+    files_level1 = detect_files(path, level=1)
+    if files_level1:
         for f in files_level1:
             m2 = re.search(PAIRED_REGEX, f)
             m = re.search(INPUT_REGEX, f)
             sample_name = os.path.basename(m2.group(1)) if m2 else os.path.basename(m.group(1))
             samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
-    else:
+        return clean_samples2files(samples2files)
+    # If there are no top-level files, try to find them in subfolders.
+    # In this case, each subfolder corresponds to one sample.
+    files_level2 = detect_files(path, level=2)
+    if files_level2:
         for f in files_level2:
             sample_name = os.path.basename(os.path.dirname(f))
             samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
-    # Sort files (R1 before R2) and remove samples that don't have 1 or 2 files:
-    return {k: sorted(v) for k, v in samples2files.iteritems() if len(v) in [1, 2]}
+        return clean_samples2files(samples2files)
+    # If there are still no suitable files, tell the user hopw folders must be structured.
+    print("No fastq/fasta files found.\n"
+          "Files can have extensions fastq/fq/fasta/fa "
+          "with optionally the additional extension gz.\n"
+          "If the folder you specified is flat, "
+          "paired files need to be indicated using the labels "_R1" and "_R2" before the "
+          "extension, otherwise each file will be treated as a separate sample. Sample names "
+          "will be derived from file names with the extensions and any R1/R2 labels trimmed off.\n"
+          "Alternatively, your folder can be structured to have one subfolder per sample. "
+          "In that case, the name of the subfolder will be used as the sample name.")
+    raise Exception()
+    
 
 def upload(
         sample_name,
