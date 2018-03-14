@@ -175,7 +175,7 @@ def main():
                     args.job_queue)
             except:
                 print("Failed to upload %s" % sample)
-            return
+        return
 
 '''
     else:
