@@ -42,7 +42,8 @@ class File():
 
 def detect_files(path, level=1):
     wildcards = "/*" * level
-    return [f for f in glob.glob(path + wildcards) if re.search(INPUT_REGEX, f) and os.stat(f).st_size > 0]
+    return [f for f in glob.glob(path + wildcards)
+            if re.search(INPUT_REGEX, f) and os.stat(f).st_size > 0]
 
 def clean_samples2files(samples2files):
     # Sort files (R1 before R2) and remove samples that don't have 1 or 2 files:
@@ -79,7 +80,7 @@ def detect_samples(path):
           "Alternatively, your folder can be structured to have one subfolder per sample. "
           "In that case, the name of the subfolder will be used as the sample name.")
     raise Exception()
-    
+
 
 def upload(
         sample_name,
