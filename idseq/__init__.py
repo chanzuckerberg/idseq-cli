@@ -5,7 +5,7 @@ from idseq import uploader
 
 
 def validate_file(path, name):
-    pattern = ".+\.(fastq|fq|fasta|fa)(\.gz|$)"
+    pattern = uploader.INPUT_REGEX
     if not re.search(pattern, path):
         print(
             "ERROR: %s (%s) file does not appear to be a fastq or fasta file." %
@@ -30,7 +30,6 @@ def main():
         '--sample-name',
         metavar='name',
         type=str,
-        required=True,
         help='Sample name. It should be unique within a project')
     parser.add_argument('-u', '--url', metavar='url', type=str, required=True,
                         help='idseq website url: i.e. dev.idseq.net')
@@ -52,7 +51,6 @@ def main():
         '--r1',
         metavar='file',
         type=str,
-        required=True,
         help='read 1 file path. could be a local file or s3 path')
     parser.add_argument(
         '--r2',
@@ -64,6 +62,12 @@ def main():
         metavar='file',
         type=str,
         help='s3 path for preloading the results for lazy run')
+    parser.add_argument(
+        '-b',
+        '--bulk',
+        metavar='file',
+        type=str,
+        help='Input folder for bulk upload')
     parser.add_argument(
         '--starindex',
         metavar='file',
@@ -138,10 +142,46 @@ def main():
 
     args = parser.parse_args()
 
+    if args.bulk:
+        # Bulk upload
+        samples2files = uploader.detect_samples(args.bulk)
+        print(samples2files)
+        for sample, files in samples2files.iteritems():
+            if len(files) < 2:
+                files += [None]
+            try:
+                uploader.upload(
+                    sample,
+                    args.project,
+                    args.email,
+                    args.token,
+                    args.url,
+                    files[0],
+                    files[1],
+                    args.preload,
+                    args.starindex,
+                    args.bowtie2index,
+                    args.samplehost,
+                    args.samplelocation,
+                    args.sampledate,
+                    args.sampletissue,
+                    args.sampletemplate,
+                    args.samplelibrary,
+                    args.samplesequencer,
+                    args.samplenotes,
+                    args.samplememory,
+                    args.host_id,
+                    args.host_genome_name,
+                    args.job_queue)
+            except:
+                print("Failed to upload %s" % sample)
+        print("\nDONE\n")
+        return
+
+    # Single upload
     validate_file(args.r1, 'R1')
     if args.r2:
         validate_file(args.r2, 'R2')
-
     uploader.upload(
         args.sample_name,
         args.project,
@@ -165,3 +205,4 @@ def main():
         args.host_id,
         args.host_genome_name,
         args.job_queue)
+    print("\nDONE\n")

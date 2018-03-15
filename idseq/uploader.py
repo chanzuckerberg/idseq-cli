@@ -3,15 +3,19 @@
 import io
 import json
 import os
+import glob
 import sys
 import requests
 import stat
 import tqdm
 import subprocess
+import re
 
 sys.tracebacklimit = 0
 tqdm.monitor_interval = 0
 
+INPUT_REGEX = "(.+)\.(fastq|fq|fasta|fa)(\.gz|$)"
+PAIRED_REGEX = "(.+)(_R\d)(_001)?\.(fastq|fq|fasta|fa)(\.gz|$)"
 MAX_PART_SIZE_IN_GB = 5
 PART_SUFFIX = "__AWS-MULTI-PART-"
 
@@ -36,6 +40,48 @@ class File():
         else:
             return [self.path]
 
+def detect_files(path, level=1):
+    wildcards = "/*" * level
+    return [f for f in glob.glob(path + wildcards)
+            if re.search(INPUT_REGEX, f) and os.stat(f).st_size > 0]
+
+def clean_samples2files(samples2files):
+    # Sort files (R1 before R2) and remove samples that don't have 1 or 2 files:
+    return {k: sorted(v) for k, v in samples2files.iteritems() if len(v) in [1, 2]}
+
+def detect_samples(path):
+    samples2files = {}
+    # First try to find top-level files in the folder.
+    # Paired files for the same sample must be labeled with R1 and R2 as indicated in PAIRED_REGEX
+    files_level1 = detect_files(path, level=1)
+    if files_level1:
+        for f in files_level1:
+            m2 = re.search(PAIRED_REGEX, f)
+            m = re.search(INPUT_REGEX, f)
+            sample_name = os.path.basename(m2.group(1)) if m2 else os.path.basename(m.group(1))
+            samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
+        return clean_samples2files(samples2files)
+    # If there are no top-level files, try to find them in subfolders.
+    # In this case, each subfolder corresponds to one sample.
+    files_level2 = detect_files(path, level=2)
+    if files_level2:
+        for f in files_level2:
+            sample_name = os.path.basename(os.path.dirname(f))
+            samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
+        return clean_samples2files(samples2files)
+    # If there are still no suitable files, tell the user hopw folders must be structured.
+    print("No fastq/fasta files found.\n"
+          "Files can have extensions fastq/fq/fasta/fa "
+          "with optionally the additional extension gz.\n"
+          "If the folder you specified is flat, "
+          "paired files need to be indicated using the labels _R1 and _R2 before the "
+          "extension, otherwise each file will be treated as a separate sample. Sample names "
+          "will be derived from file names with the extensions and any R1/R2 labels trimmed off.\n"
+          "Alternatively, your folder can be structured to have one subfolder per sample. "
+          "In that case, the name of the subfolder will be used as the sample name.")
+    raise Exception()
+
+
 def upload(
         sample_name,
         project_name,
@@ -59,6 +105,8 @@ def upload(
         host_id,
         host_genome_name,
         job_queue):
+
+    print("Uploading sample %s" % sample_name)
 
     files = [File(r1)]
     if r2:
@@ -90,8 +138,6 @@ def upload(
             "status": "created"
         }
     }
-
-    print(data)
 
     if preload_s3_path:
         data["sample"]["s3_preload_result_path"] = preload_s3_path
@@ -148,7 +194,7 @@ def upload(
 
         l = len(data['input_files'])
 
-        print("uploading %d files" % l)
+        print("uploading %d file(s)" % l)
 
         for raw_input_file in data['input_files']:
             presigned_urls = raw_input_file['presigned_url'].split(", ")
