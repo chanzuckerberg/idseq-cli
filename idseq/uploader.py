@@ -56,7 +56,7 @@ def detect_files(path, level=1):
         file_list = subprocess.check_output("aws s3 ls %s/ --recursive | awk '{print $4}'" %
                                             clean_path, shell=True).splitlines()
         return [build_path(bucket, f) for f in file_list
-                if re.search(INPUT_REGEX, f) and 
+                if re.search(INPUT_REGEX, f) and
                 determine_level(build_path(bucket, f), clean_path) == level]
     # local source:
     wildcards = "/*" * level
