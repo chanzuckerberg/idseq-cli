@@ -72,7 +72,6 @@ def detect_samples(path):
     # First try to find top-level files in the folder.
     # Paired files for the same sample must be labeled with R1 and R2 as indicated in PAIRED_REGEX
     files_level1 = detect_files(path, level=1)
-    print(files_level1)
     if files_level1:
         for f in files_level1:
             m2 = re.search(PAIRED_REGEX, f)
@@ -83,7 +82,6 @@ def detect_samples(path):
     # If there are no top-level files, try to find them in subfolders.
     # In this case, each subfolder corresponds to one sample.
     files_level2 = detect_files(path, level=2)
-    print(files_level2)
     if files_level2:
         for f in files_level2:
             sample_name = os.path.basename(os.path.dirname(f))
