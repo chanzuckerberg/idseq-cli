@@ -40,14 +40,24 @@ class File():
         else:
             return [self.path]
 
+def build_path(bucket, key):
+    return "s3://%s/%s" % (bucket, key)
+
+def determine_level(file_path, search_key):
+    n_parts_file = len(file_path.split("/"))
+    n_parts_key = len(search_key.rstrip("/").split("/"))
+    return n_parts_file - n_parts_key
+
 def detect_files(path, level=1):
     # S3 source (user needs access to the location they're trying to upload from):
     if path.startswith('s3://'):
+        clean_path = path.rstrip('/')
         bucket = path.split("/")[2]
         file_list = subprocess.check_output("aws s3 ls %s/ | awk '{print $4}'" %
-                                            path.rstrip('/'), shell=True).splitlines()
-        return ["s3://%s/%s" % (bucket, f) for f in file_list
-                if re.search(INPUT_REGEX, f)]
+                                            clean_path, shell=True).splitlines()
+        return [build_path(bucket, f) for f in file_list
+                if re.search(INPUT_REGEX, f)
+                and determine_level(build_path(bucket, f), clean_path) == level]
     # local source:
     wildcards = "/*" * level
     return [f for f in glob.glob(path + wildcards)
@@ -62,6 +72,7 @@ def detect_samples(path):
     # First try to find top-level files in the folder.
     # Paired files for the same sample must be labeled with R1 and R2 as indicated in PAIRED_REGEX
     files_level1 = detect_files(path, level=1)
+    print(files_level1)
     if files_level1:
         for f in files_level1:
             m2 = re.search(PAIRED_REGEX, f)
@@ -72,6 +83,7 @@ def detect_samples(path):
     # If there are no top-level files, try to find them in subfolders.
     # In this case, each subfolder corresponds to one sample.
     files_level2 = detect_files(path, level=2)
+    print(files_level2)
     if files_level2:
         for f in files_level2:
             sample_name = os.path.basename(os.path.dirname(f))
