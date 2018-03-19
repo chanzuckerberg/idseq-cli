@@ -54,7 +54,7 @@ def detect_files(path, level=1):
         clean_path = path.rstrip('/')
         bucket = path.split("/")[2]
         print clean_path
-        print subprocess.check_output("aws s3 ls %s/" % clean_path)
+        print subprocess.check_output("aws s3 ls %s/" % clean_path, shell=True)
         file_list = subprocess.check_output("aws s3 ls %s/ | awk '{print $4}'" %
                                             clean_path, shell=True).splitlines()
         print file_list
