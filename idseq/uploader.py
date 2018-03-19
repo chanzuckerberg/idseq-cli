@@ -41,6 +41,14 @@ class File():
             return [self.path]
 
 def detect_files(path, level=1):
+    # S3 source (user needs access to the location they're trying to upload from):
+    if path.startswith('s3://'):
+      bucket = path.split("/")[2]
+      file_list = subprocess.check_output("aws s3 ls %s/ | awk '{print $4}'" %
+                                          path.rstrip('/'), shell=True).splitlines()
+      return ["s3://%s/%s" % (bucket, f) for f in file_list
+              if re.search(INPUT_REGEX, f)]
+    # local source:
     wildcards = "/*" * level
     return [f for f in glob.glob(path + wildcards)
             if re.search(INPUT_REGEX, f) and os.stat(f).st_size > 0]
