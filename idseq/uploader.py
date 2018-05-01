@@ -111,7 +111,7 @@ def upload(
         preload_s3_path,
         starindex_s3_path,
         bowtie2index_s3_path,
-        sample_host,
+        sample_unique_id,
         sample_location,
         sample_date,
         sample_tissue,
@@ -163,8 +163,8 @@ def upload(
         data["sample"]["s3_star_index_path"] = starindex_s3_path
     if bowtie2index_s3_path:
         data["sample"]["s3_bowtie2_index_path"] = bowtie2index_s3_path
-    if sample_host:
-        data["sample"]["sample_host"] = sample_host
+    if sample_unique_id:
+        data["sample"]["sample_unique_id"] = sample_unique_id
     if sample_location:
         data["sample"]["sample_location"] = sample_location
     if sample_date:
