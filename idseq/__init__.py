@@ -11,7 +11,7 @@ def validate_file(path, name):
             "ERROR: %s (%s) file does not appear to be a fastq or fasta file." %
             (name, path))
         print("ERROR: Basename expected to match regex '%s'" % pattern)
-        raise
+        raise ValueError
 
 
 def main():
@@ -146,6 +146,7 @@ def main():
         # Bulk upload
         samples2files = uploader.detect_samples(args.bulk)
         print(samples2files)
+        uploader.get_user_agreement()
         for sample, files in samples2files.iteritems():
             if len(files) < 2:
                 files += [None]
@@ -182,6 +183,7 @@ def main():
     validate_file(args.r1, 'R1')
     if args.r2:
         validate_file(args.r2, 'R2')
+    uploader.get_user_agreement()
     uploader.upload(
         args.sample_name,
         args.project,
