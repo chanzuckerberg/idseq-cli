@@ -244,6 +244,17 @@ def upload(
             print("failure")
 
 
+def get_user_agreement():
+    prompt = "You agree that the data you are uploading to IDseq has been " \
+             "lawfully collected and that you have all necessary consent and " \
+             "authorization to upload it for the purposes outlined in IDseq's " \
+             "Terms of Use (https://idseq.net/terms).\nProceed (y/n)? "
+    resp = input(prompt)
+    if resp.lower() not in ["y", "yes"]:
+        print("Exiting...")
+        quit()
+
+
 class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
