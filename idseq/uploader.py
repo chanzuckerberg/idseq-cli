@@ -221,8 +221,6 @@ def upload(
                 presigned_url = presigned_urls[i]
                 with Tqio(file, i, l) as f:
                     requests.put(presigned_url, data=f)
-                print("Note to user: please ignore any"
-                      "'RuntimeError: Set changed size during iteration' message")
                 if PART_SUFFIX in file:
                     subprocess.check_output("rm %s" % file, shell=True)
 
