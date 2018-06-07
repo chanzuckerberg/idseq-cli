@@ -271,7 +271,7 @@ class Tqio(io.BufferedReader):
         sys.stdout.write(msg)
         sys.stdout.flush()
 
-    def write_percent_stdout(self, percentage)
+    def write_percent_stdout(self, percentage):
         self.write_stdout("%3.1f %% \r" % percentage)
 
     def update(self, len_chunk):
