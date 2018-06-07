@@ -3,7 +3,8 @@
 
 ## Install
 
-`pip install git+https://github.com/chanzuckerberg/idseq-cli.git`
+- Requires python2
+- `pip install git+https://github.com/chanzuckerberg/idseq-cli.git`
 
 ## Submit a sample
 1. Make sure AWS CLI is installed and configured
