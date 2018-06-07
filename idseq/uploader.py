@@ -268,7 +268,7 @@ class Tqio(io.BufferedReader):
 
     def update(self, len_chunk):
         self.progress += len_chunk
-        print "%.1f\r" % (100.0 * self.progress) / self.total,
+        print "%.1f\r" % ((100.0 * self.progress) / self.total),
         if self.progress >= self.total:
             print("Done.")
             time.sleep(2)
