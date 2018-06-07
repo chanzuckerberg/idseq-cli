@@ -279,7 +279,8 @@ class Tqio(io.BufferedReader):
             percentage = (100.0 * self.progress) / self.total
             self.write_stdout("%3.1f %% \r" % percentage)
         if self.progress >= self.total:
-            self.write_stdout("100 %%\nDone.")
+            self.write_stdout("100 %")
+            self.write_stdout("\nDone.")
             time.sleep(1)
             curses.curs_set(1)
             curses.endwin()
