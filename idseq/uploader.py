@@ -257,13 +257,12 @@ class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
         desc = "%s (%d/%d)" % (file_path, i + 1, count)
-        self.tqdm = tqdm.tqdm(
-            desc=desc,
-            unit="bytes",
-            unit_scale=True,
-            total=os.path.getsize(file_path))
+        self.total = os.path.getsize(file_path)
+
+    def update(len_chunk):
+        print len_chunk
 
     def read(self, *args, **kwargs):
         chunk = super(Tqio, self).read(*args, **kwargs)
-        self.tqdm.update(len(chunk))
+        self.update(len(chunk))
         return chunk
