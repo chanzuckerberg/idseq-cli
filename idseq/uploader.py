@@ -12,7 +12,6 @@ import subprocess
 import re
 
 sys.tracebacklimit = 0
-tqdm.monitor_interval = 0
 
 INPUT_REGEX = "(.+)\.(fastq|fq|fasta|fa)(\.gz|$)"
 PAIRED_REGEX = "(.+)(_R\d)(_001)?\.(fastq|fq|fasta|fa)(\.gz|$)"
