@@ -264,6 +264,7 @@ class Tqio(io.BufferedReader):
         curses.curs_set(0)
         self.write_stdout("Uploading %s (%d/%d for sample):\n\r" % (file_path, i + 1, count))
         self.progress = 0
+        self.chunk_idx = 0
         self.total = os.path.getsize(file_path)
 
     def write_stdout(self, msg):
@@ -272,7 +273,11 @@ class Tqio(io.BufferedReader):
 
     def update(self, len_chunk):
         self.progress += len_chunk
-        self.write_stdout("%3.1f %% \r" % ((100.0 * self.progress) / self.total))
+        self.chunk_idx += 1
+        if self.chunk_idx % 100 != 0:
+            return # don't slow the upload process down too much
+        percentage = (100.0 * self.progress) / self.total)
+        self.write_stdout("%3.1f %% \r" % percentage)
         if self.progress >= self.total:
             self.write_stdout("\nDone.\r")
             time.sleep(2)
