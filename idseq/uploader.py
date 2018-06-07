@@ -261,5 +261,5 @@ class Tqio(io.BufferedReader):
 
     def read(self, *args, **kwargs):
         chunk = super(Tqio, self).read(*args, **kwargs)
-        print '{}: {}\r'.format(len(chunk) / (0.01 * self.total)),
+        print '{}: {}\r'.format(self.desc, len(chunk) / (0.01 * self.total)),
         return chunk
