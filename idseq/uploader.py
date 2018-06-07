@@ -262,7 +262,7 @@ class Tqio(io.BufferedReader):
 
     def update(self, len_chunk):
         self.progress += len_chunk
-        print '{0:.1g}\r'.format((100.0 * self.progress) / self.total),
+        print '{0:.3g}\r'.format((100.0 * self.progress) / self.total),
 
     def read(self, *args, **kwargs):
         chunk = super(Tqio, self).read(*args, **kwargs)
