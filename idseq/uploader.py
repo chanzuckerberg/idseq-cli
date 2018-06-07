@@ -249,7 +249,7 @@ def get_user_agreement():
              "lawfully collected and that you have all necessary consent and " \
              "authorization to upload it for the purposes outlined in IDseq's " \
              "Terms of Use (https://idseq.net/terms).\nProceed (y/n)? "
-    resp = input(prompt)
+    resp = raw_input(prompt)
     if resp.lower() not in ["y", "yes"]:
         print("Exiting...")
         quit()
