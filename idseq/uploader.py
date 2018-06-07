@@ -262,7 +262,7 @@ class Tqio(io.BufferedReader):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
         stdscr = curses.initscr()
         curses.curs_set(0)
-        print("Uploading %s (part %d/%d):" % (file_path, i + 1, count))
+        print("Uploading %s (part %d/%d):\n\r" % (file_path, i + 1, count))
         self.progress = 0
         self.total = os.path.getsize(file_path)
 
