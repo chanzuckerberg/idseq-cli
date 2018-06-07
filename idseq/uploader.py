@@ -276,7 +276,7 @@ class Tqio(io.BufferedReader):
         self.chunk_idx += 1
         if self.chunk_idx % 100 != 0:
             return # don't slow the upload process down too much
-        percentage = (100.0 * self.progress) / self.total)
+        percentage = (100.0 * self.progress) / self.total
         self.write_stdout("%3.1f %% \r" % percentage)
         if self.progress >= self.total:
             self.write_stdout("\nDone.\r")
