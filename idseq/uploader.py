@@ -41,8 +41,7 @@ class File():
             return [self.path]
 
 def build_path(bucket, key):
-    r:w
-eturn "s3://%s/%s" % (bucket, key)
+    return "s3://%s/%s" % (bucket, key)
 
 def determine_level(file_path, search_key):
     n_parts_file = len(file_path.split("/"))
