@@ -7,6 +7,7 @@ import glob
 import sys
 import requests
 import stat
+import time
 import curses
 import subprocess
 import re
@@ -40,7 +41,8 @@ class File():
             return [self.path]
 
 def build_path(bucket, key):
-    return "s3://%s/%s" % (bucket, key)
+    r:w
+eturn "s3://%s/%s" % (bucket, key)
 
 def determine_level(file_path, search_key):
     n_parts_file = len(file_path.split("/"))
@@ -210,8 +212,12 @@ def upload(
         data = resp.json()
 
         l = len(data['input_files'])
-
-        print("uploading %d file(s)" % l)
+        if l == 1:
+          msg = "Uploading 1 file"
+        else:
+          msg = "Uploading %d files" % l
+        print(msg)
+        time.sleep(2)
 
         for raw_input_file in data['input_files']:
             presigned_urls = raw_input_file['presigned_url'].split(", ")
@@ -257,16 +263,18 @@ class Tqio(io.BufferedReader):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
         stdscr = curses.initscr()
         curses.curs_set(0)
-        print "%s (%d/%d)" % (file_path, i + 1, count)
+        print("Uploading %s (%d/%d for sample):" % (file_path, i + 1, count))
         self.progress = 0
         self.total = os.path.getsize(file_path)
 
     def update(self, len_chunk):
         self.progress += len_chunk
         if self.progress >= self.total:
+            print("Done.")
+            time.sleep(2)
             curses.curs_set(1)
             curses.endwin()
-        print '{0:.3g}\r'.format((100.0 * self.progress) / self.total),
+        print('{0:.3g}\r'.format((100.0 * self.progress) / self.total),)
 
     def read(self, *args, **kwargs):
         chunk = super(Tqio, self).read(*args, **kwargs)
