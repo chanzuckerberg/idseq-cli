@@ -256,13 +256,13 @@ def get_user_agreement():
 class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
-        self.desc = "%s (%d/%d)" % (file_path, i + 1, count)
+        print "%s (%d/%d)" % (file_path, i + 1, count)
         self.progress = 0
         self.total = os.path.getsize(file_path)
 
     def update(self, len_chunk):
         self.progress += len_chunk
-        print '{}: {}\r'.format(self.desc, (100.0 * self.progress) / self.total),
+        print '{0:.1g}\r'.format((100.0 * self.progress) / self.total),
 
     def read(self, *args, **kwargs):
         chunk = super(Tqio, self).read(*args, **kwargs)
