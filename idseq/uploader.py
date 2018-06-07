@@ -7,7 +7,7 @@ import glob
 import sys
 import requests
 import stat
-import tqdm
+import curses
 import subprocess
 import re
 
@@ -256,12 +256,15 @@ def get_user_agreement():
 class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
+        curses.curs_set(0)
         print "%s (%d/%d)" % (file_path, i + 1, count)
         self.progress = 0
         self.total = os.path.getsize(file_path)
 
     def update(self, len_chunk):
         self.progress += len_chunk
+        if self.progress >= self.total:
+            curses.curs_set(1)
         print '{0:.3g}\r'.format((100.0 * self.progress) / self.total),
 
     def read(self, *args, **kwargs):
