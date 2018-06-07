@@ -216,7 +216,7 @@ def upload(
         else:
           msg = "Uploading %d files" % l
         print(msg)
-        time.sleep(2)
+        time.sleep(1)
 
         for raw_input_file in data['input_files']:
             presigned_urls = raw_input_file['presigned_url'].split(", ")
@@ -280,7 +280,7 @@ class Tqio(io.BufferedReader):
         self.write_stdout("%3.1f %% \r" % percentage)
         if self.progress >= self.total:
             self.write_stdout("\nDone.\r")
-            time.sleep(2)
+            time.sleep(1)
             curses.curs_set(1)
             curses.endwin()
 
