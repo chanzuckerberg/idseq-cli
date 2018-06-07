@@ -257,9 +257,15 @@ class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
         self.desc = "%s (%d/%d)" % (file_path, i + 1, count)
+        self.progress = 0
         self.total = os.path.getsize(file_path)
+
+    def update(len_chunk):
+        self.progress += len_chunk
+        print '{}: {}\r'.format(self.desc, (100.0 * self.progress) / self.total),
+    end
 
     def read(self, *args, **kwargs):
         chunk = super(Tqio, self).read(*args, **kwargs)
-        print '{}: {}\r'.format(self.desc, len(chunk) / (0.01 * self.total)),
+        self.update(len(chunk))
         return chunk
