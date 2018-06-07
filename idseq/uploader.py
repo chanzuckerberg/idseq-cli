@@ -212,9 +212,9 @@ def upload(
 
         l = len(data['input_files'])
         if l == 1:
-          msg = "Uploading 1 file"
+            msg = "Uploading 1 file"
         else:
-          msg = "Uploading %d files" % l
+            msg = "Uploading %d files" % l
         print(msg)
         time.sleep(1)
 
@@ -260,7 +260,7 @@ def get_user_agreement():
 class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
-        stdscr = curses.initscr()
+        curses.initscr()
         curses.curs_set(0)
         self.write_stdout("Uploading %s:\n\r" % file_path)
         self.progress = 0
