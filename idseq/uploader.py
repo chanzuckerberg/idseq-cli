@@ -260,7 +260,7 @@ class Tqio(io.BufferedReader):
         self.progress = 0
         self.total = os.path.getsize(file_path)
 
-    def update(len_chunk):
+    def update(self, len_chunk):
         self.progress += len_chunk
         print '{}: {}\r'.format(self.desc, (100.0 * self.progress) / self.total),
 
