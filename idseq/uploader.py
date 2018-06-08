@@ -8,7 +8,6 @@ import sys
 import requests
 import stat
 import time
-import curses
 import subprocess
 import re
 
@@ -260,8 +259,6 @@ def get_user_agreement():
 class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
-        curses.initscr()
-        curses.curs_set(0)
         self.write_stdout("Uploading %s:\n\r" % file_path)
         self.progress = 0
         self.chunk_idx = 0
@@ -283,9 +280,6 @@ class Tqio(io.BufferedReader):
         if self.progress >= self.total:
             self.write_percent_stdout(100.0)
             self.write_stdout("\nDone.")
-            time.sleep(1)
-            curses.curs_set(1)
-            curses.endwin()
 
     def read(self, *args, **kwargs):
         chunk = super(Tqio, self).read(*args, **kwargs)
