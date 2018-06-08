@@ -10,6 +10,7 @@ import stat
 import time
 import subprocess
 import re
+import pkg_resources
 
 sys.tracebacklimit = 0
 
@@ -140,6 +141,8 @@ def upload(
         print("ERROR: input files must be same type")
         raise Exception()
 
+    # Get version of CLI from setuptools
+    version = pkg_resources.require("idseq")[0].version
     data = {
         "sample": {
             "name": sample_name,
@@ -152,7 +155,8 @@ def upload(
                     "parts": ", ".join(f.parts()),
                 } for f in files
             ],
-            "status": "created"
+            "status": "created",
+            "client": version
         }
     }
 
