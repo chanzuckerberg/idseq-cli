@@ -7,12 +7,11 @@ import glob
 import sys
 import requests
 import stat
-import tqdm
+import time
 import subprocess
 import re
 
 sys.tracebacklimit = 0
-tqdm.monitor_interval = 0
 
 INPUT_REGEX = "(.+)\.(fastq|fq|fasta|fa)(\.gz|$)"
 PAIRED_REGEX = "(.+)(_R\d)(_001)?\.(fastq|fq|fasta|fa)(\.gz|$)"
@@ -211,8 +210,12 @@ def upload(
         data = resp.json()
 
         l = len(data['input_files'])
-
-        print("uploading %d file(s)" % l)
+        if l == 1:
+            msg = "Uploading 1 file"
+        else:
+            msg = "Uploading %d files" % l
+        print(msg)
+        time.sleep(1)
 
         for raw_input_file in data['input_files']:
             presigned_urls = raw_input_file['presigned_url'].split(", ")
@@ -221,8 +224,6 @@ def upload(
                 presigned_url = presigned_urls[i]
                 with Tqio(file, i, l) as f:
                     requests.put(presigned_url, data=f)
-                print("Note to user: please ignore any"
-                      "'RuntimeError: Set changed size during iteration' message")
                 if PART_SUFFIX in file:
                     subprocess.check_output("rm %s" % file, shell=True)
 
@@ -258,14 +259,29 @@ def get_user_agreement():
 class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
-        desc = "%s (%d/%d)" % (file_path, i + 1, count)
-        self.tqdm = tqdm.tqdm(
-            desc=desc,
-            unit="bytes",
-            unit_scale=True,
-            total=os.path.getsize(file_path))
+        self.write_stdout("Uploading %s:\n\r" % file_path)
+        self.progress = 0
+        self.chunk_idx = 0
+        self.total = os.path.getsize(file_path)
+
+    def write_stdout(self, msg):
+        sys.stdout.write(msg)
+        sys.stdout.flush()
+
+    def write_percent_stdout(self, percentage):
+        self.write_stdout("%3.1f %% \r" % percentage)
+
+    def update(self, len_chunk):
+        self.progress += len_chunk
+        self.chunk_idx += 1
+        if self.chunk_idx % 500 == 0:
+            # don't slow the upload process down too much
+            self.write_percent_stdout((100.0 * self.progress) / self.total)
+        if self.progress >= self.total:
+            self.write_percent_stdout(100.0)
+            self.write_stdout("\nDone.")
 
     def read(self, *args, **kwargs):
         chunk = super(Tqio, self).read(*args, **kwargs)
-        self.tqdm.update(len(chunk))
+        self.update(len(chunk))
         return chunk
