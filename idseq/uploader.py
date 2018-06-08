@@ -155,9 +155,9 @@ def upload(
                     "parts": ", ".join(f.parts()),
                 } for f in files
             ],
-            "status": "created"
-        },
-        "client": version
+            "status": "created",
+            "client": version
+        }
     }
 
     if preload_s3_path:
