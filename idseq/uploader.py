@@ -143,7 +143,7 @@ def upload(
         raise Exception()
 
     # Clamp max_part_size to a valid value
-    max_part_size = max(min(DEFAULT_MAX_PART_SIZE_IN_MB, chunk_size),1)
+    max_part_size = max(min(DEFAULT_MAX_PART_SIZE_IN_MB, chunk_size), 1)
 
     # Get version of CLI from setuptools
     version = pkg_resources.require("idseq")[0].version
