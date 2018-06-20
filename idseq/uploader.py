@@ -14,9 +14,9 @@ import pkg_resources
 
 sys.tracebacklimit = 0
 
+DEFAULT_MAX_PART_SIZE_IN_MB = 5000
 INPUT_REGEX = "(.+)\.(fastq|fq|fasta|fa)(\.gz|$)"
 PAIRED_REGEX = "(.+)(_R\d)(_001)?\.(fastq|fq|fasta|fa)(\.gz|$)"
-MAX_PART_SIZE_IN_GB = 5
 PART_SUFFIX = "__AWS-MULTI-PART-"
 
 class File():
@@ -29,13 +29,13 @@ class File():
         elif stat.S_ISREG(os.stat(self.path).st_mode):
             return 'local'
 
-    def parts(self):
-        # Check if any file is over MAX_PART_SIZE_IN_GB and, if so, chunk
-        if self.source_type() == 'local' and os.path.getsize(self.path) > MAX_PART_SIZE_IN_GB * 1e9:
+    def parts(self, max_part_size):
+        # Check if any file is over max_part_size and, if so, chunk
+        if self.source_type() == 'local' and os.path.getsize(self.path) > max_part_size * 1e6:
             part_prefix = self.path + PART_SUFFIX
-            print("splitting large file into %d GB chunks..." % MAX_PART_SIZE_IN_GB)
-            subprocess.check_output("split --numeric-suffixes -b %dGB %s %s" %
-                                    (MAX_PART_SIZE_IN_GB, self.path, part_prefix), shell=True)
+            print("splitting large file into %d MB chunks..." % max_part_size)
+            subprocess.check_output("split -b %dm %s %s" %
+                                    (max_part_size, self.path, part_prefix), shell=True)
             return subprocess.check_output("ls %s*" % part_prefix, shell=True).splitlines()
         else:
             return [self.path]
@@ -122,7 +122,8 @@ def upload(
         sample_memory,
         host_id,
         host_genome_name,
-        job_queue):
+        job_queue,
+        chunk_size):
 
     print("Uploading sample %s" % sample_name)
 
@@ -141,6 +142,9 @@ def upload(
         print("ERROR: input files must be same type")
         raise Exception()
 
+    # Clamp max_part_size to a valid value
+    max_part_size = max(min(DEFAULT_MAX_PART_SIZE_IN_MB, chunk_size),1)
+
     # Get version of CLI from setuptools
     version = pkg_resources.require("idseq")[0].version
     data = {
@@ -152,7 +156,7 @@ def upload(
                     "name": os.path.basename(f.path),
                     "source": f.path,
                     "source_type": f.source_type(),
-                    "parts": ", ".join(f.parts()),
+                    "parts": ", ".join(f.parts(max_part_size)),
                 } for f in files
             ],
             "status": "created",
