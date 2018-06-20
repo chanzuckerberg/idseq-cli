@@ -2,6 +2,7 @@ import argparse
 import re
 import sys
 from idseq import uploader
+from idseq.uploader import DEFAULT_MAX_PART_SIZE_IN_MB
 
 
 def validate_file(path, name):
@@ -124,21 +125,27 @@ def main():
         type=int,
         help='Memory requirement in MB')
     parser.add_argument(
-        '--host_id',
+        '--host-id',
         metavar='value',
         type=int,
         help='Host Genome Id')
     parser.add_argument(
-        '--host_genome_name',
+        '--host-genome-name',
         metavar='name',
         type=str,
         default="Human",
         help='Host Genome Name')
     parser.add_argument(
-        '--job_queue',
+        '--job-queue',
         metavar='name',
         type=str,
         help='Job Queue')
+    parser.add_argument(
+        '--uploadchunksize',
+        metavar='value',
+        type=int,
+        default=DEFAULT_MAX_PART_SIZE_IN_MB,
+        help='Break up uploaded files into chunks of this size in MB')
 
     args = parser.parse_args()
 
@@ -173,7 +180,8 @@ def main():
                     args.samplememory,
                     args.host_id,
                     args.host_genome_name,
-                    args.job_queue)
+                    args.job_queue,
+                    args.uploadchunksize)
             except:
                 print("Failed to upload %s" % sample)
         print("\nDONE\n")
@@ -206,5 +214,6 @@ def main():
         args.samplememory,
         args.host_id,
         args.host_genome_name,
-        args.job_queue)
+        args.job_queue,
+        args.uploadchunksize)
     print("\nDONE\n")
