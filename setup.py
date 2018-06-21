@@ -9,6 +9,6 @@ setup(name='idseq',
       license='MIT',
       packages=['idseq'],
       zip_safe=False,
-      install_requires=['requests'],
+      install_requires=['future', 'requests'],
       entry_points={'console_scripts': ['idseq=idseq:main']},
       extras_require={'dev': ['flake8']})

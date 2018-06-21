@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import io
 import json
 import os
@@ -11,6 +9,8 @@ import time
 import subprocess
 import re
 import pkg_resources
+from builtins import input
+from future.utils import viewitems
 
 sys.tracebacklimit = 0
 
@@ -65,7 +65,7 @@ def detect_files(path, level=1):
 
 def clean_samples2files(samples2files):
     # Sort files (R1 before R2) and remove samples that don't have 1 or 2 files:
-    return {k: sorted(v) for k, v in samples2files.iteritems() if len(v) in [1, 2]}
+    return {k: sorted(v) for k, v in viewitems(samples2files) if len(v) in [1, 2]}
 
 def detect_samples(path):
     samples2files = {}
@@ -208,11 +208,13 @@ def upload(
         headers=headers)
 
     if resp.status_code == 201:
-        print("successfully created entry")
+        print("Successfully created entry")
     else:
-        print('failed %s' % resp.status_code)
-        print(resp.json())
-        raise Exception()
+        print('Failed. Error no: %s' % resp.status_code)
+        for (err_type, errors) in viewitems(resp.json()):
+            for error in errors:
+                print('Error :: {0} :: {1}'.format(err_type, error))
+        return
 
     if source_type == 'local':
         data = resp.json()
@@ -257,8 +259,8 @@ def get_user_agreement():
     prompt = "You agree that the data you are uploading to IDseq has been " \
              "lawfully collected and that you have all necessary consent and " \
              "authorization to upload it for the purposes outlined in IDseq's " \
-             "Terms of Use (https://idseq.net/terms).\nProceed (y/n)? "
-    resp = raw_input(prompt)
+             "Terms of Use (https://idseq.net/terms).\nProceed (y/N)? "
+    resp = input(prompt)
     if resp.lower() not in ["y", "yes"]:
         print("Exiting...")
         quit()
