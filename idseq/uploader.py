@@ -19,6 +19,7 @@ INPUT_REGEX = "(.+)\.(fastq|fq|fasta|fa)(\.gz|$)"
 PAIRED_REGEX = "(.+)(_R\d)(_001)?\.(fastq|fq|fasta|fa)(\.gz|$)"
 PART_SUFFIX = "__AWS-MULTI-PART-"
 
+
 class File():
     def __init__(self, path):
         self.path = path
@@ -31,41 +32,57 @@ class File():
 
     def parts(self, max_part_size):
         # Check if any file is over max_part_size and, if so, chunk
-        if self.source_type() == 'local' and os.path.getsize(self.path) > max_part_size * 1e6:
+        if self.source_type() == 'local' and os.path.getsize(
+                self.path) > max_part_size * 1e6:
             part_prefix = self.path + PART_SUFFIX
             print("splitting large file into %d MB chunks..." % max_part_size)
-            subprocess.check_output("split -b %dm %s %s" %
-                                    (max_part_size, self.path, part_prefix), shell=True)
-            return subprocess.check_output("ls %s*" % part_prefix, shell=True).splitlines()
+            subprocess.check_output(
+                "split -b %dm %s %s" % (max_part_size, self.path, part_prefix),
+                shell=True)
+            return subprocess.check_output(
+                "ls %s*" % part_prefix, shell=True).splitlines()
         else:
             return [self.path]
 
+
 def build_path(bucket, key):
     return "s3://%s/%s" % (bucket, key)
+
 
 def determine_level(file_path, search_key):
     n_parts_file = len(file_path.split("/"))
     n_parts_key = len(search_key.rstrip("/").split("/"))
     return n_parts_file - n_parts_key
 
+
 def detect_files(path, level=1):
     # S3 source (user needs access to the location they're trying to upload from):
     if path.startswith('s3://'):
         clean_path = path.rstrip('/')
         bucket = path.split("/")[2]
-        file_list = subprocess.check_output("aws s3 ls %s/ --recursive | awk '{print $4}'" %
-                                            clean_path, shell=True).splitlines()
-        return [build_path(bucket, f) for f in file_list
-                if re.search(INPUT_REGEX, f) and
-                determine_level(build_path(bucket, f), clean_path) == level]
+        file_list = subprocess.check_output(
+            "aws s3 ls %s/ --recursive | awk '{print $4}'" % clean_path,
+            shell=True).splitlines()
+        return [
+            build_path(bucket, f) for f in file_list
+            if re.search(INPUT_REGEX, f)
+            and determine_level(build_path(bucket, f), clean_path) == level
+        ]
     # local source:
     wildcards = "/*" * level
-    return [f for f in glob.glob(path + wildcards)
-            if re.search(INPUT_REGEX, f) and os.stat(f).st_size > 0]
+    return [
+        f for f in glob.glob(path + wildcards)
+        if re.search(INPUT_REGEX, f) and os.stat(f).st_size > 0
+    ]
+
 
 def clean_samples2files(samples2files):
     # Sort files (R1 before R2) and remove samples that don't have 1 or 2 files:
-    return {k: sorted(v) for k, v in viewitems(samples2files) if len(v) in [1, 2]}
+    return {
+        k: sorted(v)
+        for k, v in viewitems(samples2files) if len(v) in [1, 2]
+    }
+
 
 def detect_samples(path):
     samples2files = {}
@@ -76,8 +93,10 @@ def detect_samples(path):
         for f in files_level1:
             m2 = re.search(PAIRED_REGEX, f)
             m = re.search(INPUT_REGEX, f)
-            sample_name = os.path.basename(m2.group(1)) if m2 else os.path.basename(m.group(1))
-            samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
+            sample_name = os.path.basename(
+                m2.group(1)) if m2 else os.path.basename(m.group(1))
+            samples2files[sample_name] = samples2files.get(sample_name,
+                                                           []) + [f]
         return clean_samples2files(samples2files)
     # If there are no top-level files, try to find them in subfolders.
     # In this case, each subfolder corresponds to one sample.
@@ -85,45 +104,29 @@ def detect_samples(path):
     if files_level2:
         for f in files_level2:
             sample_name = os.path.basename(os.path.dirname(f))
-            samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
+            samples2files[sample_name] = samples2files.get(sample_name,
+                                                           []) + [f]
         return clean_samples2files(samples2files)
     # If there are still no suitable files, tell the user hopw folders must be structured.
-    print("No fastq/fasta files found.\n"
-          "Files can have extensions fastq/fq/fasta/fa "
-          "with optionally the additional extension gz.\n"
-          "If the folder you specified is flat, "
-          "paired files need to be indicated using the labels _R1 and _R2 before the "
-          "extension, otherwise each file will be treated as a separate sample. Sample names "
-          "will be derived from file names with the extensions and any R1/R2 labels trimmed off.\n"
-          "Alternatively, your folder can be structured to have one subfolder per sample. "
-          "In that case, the name of the subfolder will be used as the sample name.")
+    print(
+        "No fastq/fasta files found.\n"
+        "Files can have extensions fastq/fq/fasta/fa "
+        "with optionally the additional extension gz.\n"
+        "If the folder you specified is flat, "
+        "paired files need to be indicated using the labels _R1 and _R2 before the "
+        "extension, otherwise each file will be treated as a separate sample. Sample names "
+        "will be derived from file names with the extensions and any R1/R2 labels trimmed off.\n"
+        "Alternatively, your folder can be structured to have one subfolder per sample. "
+        "In that case, the name of the subfolder will be used as the sample name."
+    )
     raise Exception()
 
 
-def upload(
-        sample_name,
-        project_name,
-        email,
-        token,
-        url,
-        r1,
-        r2,
-        preload_s3_path,
-        starindex_s3_path,
-        bowtie2index_s3_path,
-        sample_unique_id,
-        sample_location,
-        sample_date,
-        sample_tissue,
-        sample_template,
-        sample_library,
-        sample_sequencer,
-        sample_notes,
-        sample_memory,
-        host_id,
-        host_genome_name,
-        job_queue,
-        chunk_size):
+def upload(sample_name, project_name, email, token, url, r1, r2,
+           preload_s3_path, starindex_s3_path, bowtie2index_s3_path,
+           sample_unique_id, sample_location, sample_date, sample_tissue,
+           sample_template, sample_library, sample_sequencer, sample_notes,
+           sample_memory, host_id, host_genome_name, job_queue, chunk_size):
 
     print("Uploading sample %s" % sample_name)
 
@@ -134,7 +137,8 @@ def upload(
     source_type = files[0].source_type()
 
     # Raise exception if a file is empty
-    if source_type == 'local' and any(os.stat(f.path).st_size == 0 for f in files):
+    if source_type == 'local' and any(
+            os.stat(f.path).st_size == 0 for f in files):
         print("ERROR: input file must not be empty")
         raise Exception()
 
@@ -149,18 +153,24 @@ def upload(
     version = pkg_resources.require("idseq")[0].version
     data = {
         "sample": {
-            "name": sample_name,
-            "project_name": project_name,
-            "input_files_attributes": [
-                {
-                    "name": os.path.basename(f.path),
-                    "source": f.path,
-                    "source_type": f.source_type(),
-                    "parts": ", ".join(f.parts(max_part_size)),
-                } for f in files
-            ],
-            "status": "created",
-            "client": version
+            "name":
+            sample_name,
+            "project_name":
+            project_name,
+            "input_files_attributes": [{
+                "name":
+                os.path.basename(f.path),
+                "source":
+                f.path,
+                "source_type":
+                f.source_type(),
+                "parts":
+                ", ".join(f.parts(max_part_size)),
+            } for f in files],
+            "status":
+            "created",
+            "client":
+            version
         }
     }
 
@@ -203,9 +213,7 @@ def upload(
     }
 
     resp = requests.post(
-        url + '/samples.json',
-        data=json.dumps(data),
-        headers=headers)
+        url + '/samples.json', data=json.dumps(data), headers=headers)
 
     if resp.status_code == 201:
         print("Successfully created entry")
@@ -246,8 +254,9 @@ def upload(
         }
 
         resp = requests.put(
-            '%s/samples/%d.json' %
-            (url, data['id']), data=json.dumps(update), headers=headers)
+            '%s/samples/%d.json' % (url, data['id']),
+            data=json.dumps(update),
+            headers=headers)
 
         if resp.status_code == 200:
             print("success")

@@ -9,15 +9,17 @@ def validate_file(path, name):
     pattern = uploader.INPUT_REGEX
     if not re.search(pattern, path):
         print(
-            "ERROR: %s (%s) file does not appear to be a fastq or fasta file." %
-            (name, path))
+            "ERROR: %s (%s) file does not appear to be a fastq or fasta file."
+            % (name, path))
         print("ERROR: Basename expected to match regex '%s'" % pattern)
         raise ValueError
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Submit a sample to idseq. (Accepts fastq or fasta files, single or paired, gzipped or not.)')
+        description=
+        'Submit a sample to idseq. (Accepts fastq or fasta files, single or paired, gzipped or not.)'
+    )
 
     parser.add_argument(
         '-p',
@@ -32,8 +34,13 @@ def main():
         metavar='name',
         type=str,
         help='Sample name. It should be unique within a project')
-    parser.add_argument('-u', '--url', metavar='url', type=str, required=True,
-                        help='idseq website url: i.e. dev.idseq.net')
+    parser.add_argument(
+        '-u',
+        '--url',
+        metavar='url',
+        type=str,
+        required=True,
+        help='idseq website url: i.e. dev.idseq.net')
     parser.add_argument(
         '-e',
         '--email',
@@ -95,10 +102,7 @@ def main():
         type=str,
         help='Date of sample collection')
     parser.add_argument(
-        '--sampletissue',
-        metavar='name',
-        type=str,
-        help='Tissue sampled')
+        '--sampletissue', metavar='name', type=str, help='Tissue sampled')
     parser.add_argument(
         '--sampletemplate',
         metavar='name',
@@ -125,10 +129,7 @@ def main():
         type=int,
         help='Memory requirement in MB')
     parser.add_argument(
-        '--host-id',
-        metavar='value',
-        type=int,
-        help='Host Genome Id')
+        '--host-id', metavar='value', type=int, help='Host Genome Id')
     parser.add_argument(
         '--host-genome-name',
         metavar='name',
@@ -136,10 +137,7 @@ def main():
         default="Human",
         help='Host Genome Name')
     parser.add_argument(
-        '--job-queue',
-        metavar='name',
-        type=str,
-        help='Job Queue')
+        '--job-queue', metavar='name', type=str, help='Job Queue')
     parser.add_argument(
         '--uploadchunksize',
         metavar='value',
@@ -152,6 +150,8 @@ def main():
     if args.bulk:
         # Bulk upload
         samples2files = uploader.detect_samples(args.bulk)
+
+        print("Samples and files to upload:")
         print(samples2files)
         uploader.get_user_agreement()
         for sample, files in samples2files.iteritems():
@@ -159,29 +159,13 @@ def main():
                 files += [None]
             try:
                 uploader.upload(
-                    sample,
-                    args.project,
-                    args.email,
-                    args.token,
-                    args.url,
-                    files[0],
-                    files[1],
-                    args.preload,
-                    args.starindex,
-                    args.bowtie2index,
-                    args.samplehost,
-                    args.samplelocation,
-                    args.sampledate,
-                    args.sampletissue,
-                    args.sampletemplate,
-                    args.samplelibrary,
-                    args.samplesequencer,
-                    args.samplenotes,
-                    args.samplememory,
-                    args.host_id,
-                    args.host_genome_name,
-                    args.job_queue,
-                    args.uploadchunksize)
+                    sample, args.project, args.email, args.token, args.url,
+                    files[0], files[1], args.preload, args.starindex,
+                    args.bowtie2index, args.samplehost, args.samplelocation,
+                    args.sampledate, args.sampletissue, args.sampletemplate,
+                    args.samplelibrary, args.samplesequencer, args.samplenotes,
+                    args.samplememory, args.host_id, args.host_genome_name,
+                    args.job_queue, args.uploadchunksize)
             except:
                 print("Failed to upload %s" % sample)
         print("\nDONE\n")
@@ -192,28 +176,11 @@ def main():
     if args.r2:
         validate_file(args.r2, 'R2')
     uploader.get_user_agreement()
-    uploader.upload(
-        args.sample_name,
-        args.project,
-        args.email,
-        args.token,
-        args.url,
-        args.r1,
-        args.r2,
-        args.preload,
-        args.starindex,
-        args.bowtie2index,
-        args.samplehost,
-        args.samplelocation,
-        args.sampledate,
-        args.sampletissue,
-        args.sampletemplate,
-        args.samplelibrary,
-        args.samplesequencer,
-        args.samplenotes,
-        args.samplememory,
-        args.host_id,
-        args.host_genome_name,
-        args.job_queue,
-        args.uploadchunksize)
+    uploader.upload(args.sample_name, args.project, args.email, args.token,
+                    args.url, args.r1, args.r2, args.preload, args.starindex,
+                    args.bowtie2index, args.samplehost, args.samplelocation,
+                    args.sampledate, args.sampletissue, args.sampletemplate,
+                    args.samplelibrary, args.samplesequencer, args.samplenotes,
+                    args.samplememory, args.host_id, args.host_genome_name,
+                    args.job_queue, args.uploadchunksize)
     print("\nDONE\n")
