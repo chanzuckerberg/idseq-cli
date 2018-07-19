@@ -3,6 +3,7 @@ import re
 import sys
 from idseq import uploader
 from idseq.uploader import DEFAULT_MAX_PART_SIZE_IN_MB
+from future.utils import viewitems
 
 
 def validate_file(path, name):
@@ -151,10 +152,10 @@ def main():
         # Bulk upload
         samples2files = uploader.detect_samples(args.bulk)
 
-        print("Samples and files to upload:")
-        print(samples2files)
+        print("\nSamples and files to upload:")
+        print(str(samples2files) + "\n")
         uploader.get_user_agreement()
-        for sample, files in samples2files.iteritems():
+        for sample, files in viewitems(samples2files):
             if len(files) < 2:
                 files += [None]
             try:
@@ -166,9 +167,9 @@ def main():
                     args.samplelibrary, args.samplesequencer, args.samplenotes,
                     args.samplememory, args.host_id, args.host_genome_name,
                     args.job_queue, args.uploadchunksize)
-            except:
-                print("Failed to upload %s" % sample)
-        print("\nDONE\n")
+            except RuntimeError as e:
+                print("\nFailed to upload %s" % sample)
+                print("\nError: %s" % e)
         return
 
     # Single upload
@@ -183,4 +184,3 @@ def main():
                     args.samplelibrary, args.samplesequencer, args.samplenotes,
                     args.samplememory, args.host_id, args.host_genome_name,
                     args.job_queue, args.uploadchunksize)
-    print("\nDONE\n")

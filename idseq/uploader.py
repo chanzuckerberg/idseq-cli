@@ -119,7 +119,7 @@ def detect_samples(path):
         "Alternatively, your folder can be structured to have one subfolder per sample. "
         "In that case, the name of the subfolder will be used as the sample name."
     )
-    raise Exception()
+    raise ValueError()
 
 
 def upload(sample_name, project_name, email, token, url, r1, r2,
@@ -128,7 +128,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
            sample_template, sample_library, sample_sequencer, sample_notes,
            sample_memory, host_id, host_genome_name, job_queue, chunk_size):
 
-    print("Uploading sample %s" % sample_name)
+    print("\nPreparing to uploading sample %s ..." % sample_name)
 
     files = [File(r1)]
     if r2:
@@ -140,11 +140,11 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
     if source_type == 'local' and any(
             os.stat(f.path).st_size == 0 for f in files):
         print("ERROR: input file must not be empty")
-        raise Exception()
+        raise ValueError()
 
     if r2 and files[0].source_type() != files[1].source_type():
         print("ERROR: input files must be same type")
-        raise Exception()
+        raise ValueError()
 
     # Clamp max_part_size to a valid value
     max_part_size = max(min(DEFAULT_MAX_PART_SIZE_IN_MB, chunk_size), 1)
@@ -216,9 +216,9 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
         url + '/samples.json', data=json.dumps(data), headers=headers)
 
     if resp.status_code == 201:
-        print("Successfully created entry")
+        print("Connected to the server.")
     else:
-        print('Failed. Error no: %s' % resp.status_code)
+        print('\nFailed. Error no: %s' % resp.status_code)
         for (err_type, errors) in viewitems(resp.json()):
             for error in errors:
                 print('Error :: {0} :: {1}'.format(err_type, error))
@@ -229,9 +229,9 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
 
         l = len(data['input_files'])
         if l == 1:
-            msg = "Uploading 1 file"
+            msg = "1 file to upload..."
         else:
-            msg = "Uploading %d files" % l
+            msg = "%d files to upload..." % l
         print(msg)
         time.sleep(1)
 
@@ -262,6 +262,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
             print("success")
         else:
             print("failure")
+    print("\nDONE\n")
 
 
 def get_user_agreement():
@@ -282,6 +283,7 @@ class Tqio(io.BufferedReader):
         self.progress = 0
         self.chunk_idx = 0
         self.total = os.path.getsize(file_path)
+        self.done = False
 
     def write_stdout(self, msg):
         sys.stdout.write(msg)
@@ -296,9 +298,10 @@ class Tqio(io.BufferedReader):
         if self.chunk_idx % 500 == 0:
             # don't slow the upload process down too much
             self.write_percent_stdout((100.0 * self.progress) / self.total)
-        if self.progress >= self.total:
+        if self.progress >= self.total and not self.done:
             self.write_percent_stdout(100.0)
-            self.write_stdout("\nDone.")
+            self.write_stdout("\nDone.\n")
+            self.done = True
 
     def read(self, *args, **kwargs):
         chunk = super(Tqio, self).read(*args, **kwargs)
