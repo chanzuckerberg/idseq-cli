@@ -1,21 +1,20 @@
 import argparse
 import re
-import sys
 
 import requests
+from builtins import input
+from future.utils import viewitems
 
 from idseq import uploader
 from idseq.uploader import DEFAULT_MAX_PART_SIZE_IN_MB
-from future.utils import viewitems
-from builtins import input
 
 
 def validate_file(path, name):
     pattern = uploader.INPUT_REGEX
     if not re.search(pattern, path):
         print(
-            "ERROR: %s (%s) file does not appear to be a fastq or fasta file."
-            % (name, path))
+                "ERROR: %s (%s) file does not appear to be a fastq or fasta file."
+                % (name, path))
         print(
             "Accepted formats: fastq/fq, fasta/fa, fastq.gz/fq.gz, fasta.gz/fa.gz"
         )
@@ -153,21 +152,33 @@ def main():
         args.url = "https://idseq.net"
 
     # Prompt the user for missing fields
-    if not args.project:
-        args.project = required_input("Enter the project name:   ")
-    if not args.sample_name and not args.bulk:
-        args.sample_name = required_input("Enter the sample name:   ")
     if not args.email:
-        args.email = required_input("Enter your IDseq account email:   ")
+        args.email = required_input("Enter your IDseq account email: ")
     if not args.token:
-        args.token = required_input("Enter your IDseq authentication token (found in instructions):   ")
+        args.token = required_input("Enter your IDseq authentication token ("
+                                    "found in instructions): ")
+    if not args.project:
+        args.project = required_input("Enter the project name: ")
+    if not args.bulk:
+        if not args.sample_name:
+            args.sample_name = required_input("Enter the sample name: ")
+        if not args.r1:
+            args.r1 = required_input("Enter the first file (first in a "
+                                     "paired-end run or sole file in a "
+                                     "single-end run): ")
+        if not args.r2:
+            r2 = input("Enter the second paired-end file if applicable (or "
+                       "Enter to skip): ")
+            if r2 != '':
+                args.r2 = r2
     if not args.host_genome_name:
-        args.host_genome_name = required_input("Enter the host genome name. Options: 'Human', 'Mosquito', 'Tick', or 'ERCC only': ")
+        args.host_genome_name = required_input("Enter the host genome name:\n"
+                                               "Options: 'Human', 'Mosquito', "
+                                               "'Tick', or 'ERCC only': "
+                                               "").strip("'")
 
-    # Add thingy for r1 and r2
-    # Add whitespace stuff
-
-    print("\nPROJECT:      " + args.project)
+    print("\n" + "PROJECT:".ljust(20) + args.project)
+    print("HOST GENOME:".ljust(20) + args.host_genome_name)
 
     # Bulk upload
     if args.bulk:
@@ -195,7 +206,7 @@ def main():
 
 
 def required_input(msg):
-    resp = input(msg)
+    resp = input(msg.ljust(35))
     if resp is '':
         raise RuntimeError("Value required!")
     return resp
@@ -219,8 +230,8 @@ def upload_sample(sample_name, file_0, file_1, args):
 
 
 def sample_files_text(sample, files):
-    print("\nSAMPLE NAME:  " + sample)
-    print("INPUT FILES:  " + " ".join(files))
+    print("\n" + "SAMPLE NAME:".ljust(20) + sample)
+    print("INPUT FILES:".ljust(20) + " ".join(files))
 
 
 def sample_error_text(sample, err):

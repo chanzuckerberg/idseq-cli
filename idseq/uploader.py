@@ -109,7 +109,7 @@ def detect_samples(path):
         return clean_samples2files(samples2files)
     # If there are still no suitable files, tell the user hopw folders must be structured.
     print(
-        "\nNo fastq/fasta files found in this folder.\n"
+        "\n\nNo fastq/fasta files found in this folder.\n"
         "Files can have extensions fastq/fq/fasta/fa "
         "with optionally the additional extension gz.\n"
         "If the folder you specified has no sub-directories, "
@@ -220,6 +220,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
         print("Connected to the server.")
     else:
         print('\nFailed. Error no: %s' % resp.status_code)
+        print(viewitems(resp.json()))
         for (err_type, errors) in viewitems(resp.json()):
             for error in errors:
                 print('Error response from IDseq server :: {0} :: {1}'.format(err_type, error))
@@ -261,7 +262,6 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
 
         if resp.status_code != 200:
             print("Sample was not successfully uploaded. Status code: %s" % str(resp.status_code))
-    print("\nDONE\n")
 
 
 def get_user_agreement():
