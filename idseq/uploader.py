@@ -109,15 +109,16 @@ def detect_samples(path):
         return clean_samples2files(samples2files)
     # If there are still no suitable files, tell the user hopw folders must be structured.
     print(
-        "No fastq/fasta files found.\n"
+        "\nNo fastq/fasta files found in this folder.\n"
         "Files can have extensions fastq/fq/fasta/fa "
         "with optionally the additional extension gz.\n"
-        "If the folder you specified is flat, "
+        "If the folder you specified has no sub-directories, "
         "paired files need to be indicated using the labels _R1 and _R2 before the "
         "extension, otherwise each file will be treated as a separate sample. Sample names "
         "will be derived from file names with the extensions and any R1/R2 labels trimmed off.\n"
         "Alternatively, your folder can be structured to have one subfolder per sample. "
-        "In that case, the name of the subfolder will be used as the sample name."
+        "In that case, the name of the subfolder will be used as the sample name.\n"
+        "Example names: RR004_water_2_S23_R1_001.fastq.gz and RR004_water_2_S23_R2_001.fastq.gz"
     )
     raise ValueError()
 
@@ -128,7 +129,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
            sample_template, sample_library, sample_sequencer, sample_notes,
            sample_memory, host_id, host_genome_name, job_queue, chunk_size):
 
-    print("\nPreparing to uploading sample %s ..." % sample_name)
+    print("\nPreparing to uploading sample \"%s\" ..." % sample_name)
 
     files = [File(r1)]
     if r2:
@@ -221,7 +222,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
         print('\nFailed. Error no: %s' % resp.status_code)
         for (err_type, errors) in viewitems(resp.json()):
             for error in errors:
-                print('Error :: {0} :: {1}'.format(err_type, error))
+                print('Error response from IDseq server :: {0} :: {1}'.format(err_type, error))
         return
 
     if source_type == 'local':
@@ -258,28 +259,32 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
             data=json.dumps(update),
             headers=headers)
 
-        if resp.status_code == 200:
-            print("success")
-        else:
-            print("failure")
+        if resp.status_code != 200:
+            print("Sample was not successfully uploaded. Status code: %s" % str(resp.status_code))
     print("\nDONE\n")
 
 
 def get_user_agreement():
-    prompt = "You agree that the data you are uploading to IDseq has been " \
-             "lawfully collected and that you have all necessary consent and " \
-             "authorization to upload it for the purposes outlined in IDseq's " \
-             "Terms of Use (https://idseq.net/terms).\nProceed (y/N)? "
-    resp = input(prompt)
-    if resp.lower() not in ["y", "yes"]:
-        print("Exiting...")
-        quit()
+    def prompt(msg):
+        resp = input(msg)
+        if resp.lower() not in ["y", "yes"]:
+            print("Exiting...")
+            quit()
+
+    msg = "\nConfirm details above.\nProceed (y/N)? Y for yes or N to cancel: "
+    prompt(msg)
+    msg = "\nYou agree that the data you are " \
+             "uploading to IDseq has been lawfully collected and that you have " \
+             "all necessary consent and authorization to upload it for the " \
+             "purposes outlined in IDseq's Terms of Use (" \
+             "https://idseq.net/terms).\nProceed (y/N)? Y for yes or N to cancel: "
+    prompt(msg)
 
 
 class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
-        self.write_stdout("Uploading %s:\n\r" % file_path)
+        self.write_stdout("\nUploading %s...\n\r" % file_path)
         self.progress = 0
         self.chunk_idx = 0
         self.total = os.path.getsize(file_path)

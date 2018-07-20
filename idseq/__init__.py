@@ -1,9 +1,13 @@
 import argparse
 import re
 import sys
+
+import requests
+
 from idseq import uploader
 from idseq.uploader import DEFAULT_MAX_PART_SIZE_IN_MB
 from future.utils import viewitems
+from builtins import input
 
 
 def validate_file(path, name):
@@ -12,7 +16,9 @@ def validate_file(path, name):
         print(
             "ERROR: %s (%s) file does not appear to be a fastq or fasta file."
             % (name, path))
-        print("ERROR: Basename expected to match regex '%s'" % pattern)
+        print(
+            "Accepted formats: fastq/fq, fasta/fa, fastq.gz/fq.gz, fasta.gz/fa.gz"
+        )
         raise ValueError
 
 
@@ -27,7 +33,6 @@ def main():
         '--project',
         metavar='name',
         type=str,
-        required=True,
         help='Project name. Make sure the project is created on the website ')
     parser.add_argument(
         '-s',
@@ -40,22 +45,24 @@ def main():
         '--url',
         metavar='url',
         type=str,
-        required=True,
         help='idseq website url: i.e. dev.idseq.net')
     parser.add_argument(
         '-e',
         '--email',
         metavar='email',
         type=str,
-        required=True,
         help='Your login email for idseq website')
     parser.add_argument(
         '-t',
         '--token',
         metavar='token',
         type=str,
-        required=True,
         help='Your authentication token')
+    parser.add_argument(
+        '--host-genome-name',
+        metavar='name',
+        type=str,
+        help='Host Genome Name')
     parser.add_argument(
         '--r1',
         metavar='file',
@@ -132,12 +139,6 @@ def main():
     parser.add_argument(
         '--host-id', metavar='value', type=int, help='Host Genome Id')
     parser.add_argument(
-        '--host-genome-name',
-        metavar='name',
-        type=str,
-        default="Human",
-        help='Host Genome Name')
-    parser.add_argument(
         '--job-queue', metavar='name', type=str, help='Job Queue')
     parser.add_argument(
         '--uploadchunksize',
@@ -145,42 +146,90 @@ def main():
         type=int,
         default=DEFAULT_MAX_PART_SIZE_IN_MB,
         help='Break up uploaded files into chunks of this size in MB')
-
     args = parser.parse_args()
 
+    # Use https://idseq.net by default
+    if not args.url:
+        args.url = "https://idseq.net"
+
+    # Prompt the user for missing fields
+    if not args.project:
+        args.project = required_input("Enter the project name:   ")
+    if not args.sample_name and not args.bulk:
+        args.sample_name = required_input("Enter the sample name:   ")
+    if not args.email:
+        args.email = required_input("Enter your IDseq account email:   ")
+    if not args.token:
+        args.token = required_input("Enter your IDseq authentication token (found in instructions):   ")
+    if not args.host_genome_name:
+        args.host_genome_name = required_input("Enter the host genome name. Options: 'Human', 'Mosquito', 'Tick', or 'ERCC only': ")
+
+    # Add thingy for r1 and r2
+    # Add whitespace stuff
+
+    print("\nPROJECT:      " + args.project)
+
+    # Bulk upload
     if args.bulk:
-        # Bulk upload
         samples2files = uploader.detect_samples(args.bulk)
 
         print("\nSamples and files to upload:")
-        print(str(samples2files) + "\n")
+        for sample, files in viewitems(samples2files):
+            sample_files_text(sample, files)
         uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):
             if len(files) < 2:
-                files += [None]
-            try:
-                uploader.upload(
-                    sample, args.project, args.email, args.token, args.url,
-                    files[0], files[1], args.preload, args.starindex,
-                    args.bowtie2index, args.samplehost, args.samplelocation,
-                    args.sampledate, args.sampletissue, args.sampletemplate,
-                    args.samplelibrary, args.samplesequencer, args.samplenotes,
-                    args.samplememory, args.host_id, args.host_genome_name,
-                    args.job_queue, args.uploadchunksize)
-            except RuntimeError as e:
-                print("\nFailed to upload %s" % sample)
-                print("\nError: %s" % e)
+                files.append(None)
+            upload_sample(sample, files[0], files[1], args)
         return
 
     # Single upload
     validate_file(args.r1, 'R1')
+    input_files = [args.r1]
     if args.r2:
         validate_file(args.r2, 'R2')
+        input_files.append(args.r2)
+    sample_files_text(args.sample_name, input_files)
     uploader.get_user_agreement()
-    uploader.upload(args.sample_name, args.project, args.email, args.token,
-                    args.url, args.r1, args.r2, args.preload, args.starindex,
-                    args.bowtie2index, args.samplehost, args.samplelocation,
-                    args.sampledate, args.sampletissue, args.sampletemplate,
-                    args.samplelibrary, args.samplesequencer, args.samplenotes,
-                    args.samplememory, args.host_id, args.host_genome_name,
-                    args.job_queue, args.uploadchunksize)
+    upload_sample(args.sample_name, args.r1, args.r2, args)
+
+
+def required_input(msg):
+    resp = input(msg)
+    if resp is '':
+        raise RuntimeError("Value required!")
+    return resp
+
+
+def upload_sample(sample_name, file_0, file_1, args):
+    try:
+        uploader.upload(
+            sample_name, args.project, args.email, args.token, args.url,
+            file_0, file_1, args.preload, args.starindex, args.bowtie2index,
+            args.samplehost, args.samplelocation, args.sampledate,
+            args.sampletissue, args.sampletemplate, args.samplelibrary,
+            args.samplesequencer, args.samplenotes, args.samplememory,
+            args.host_id, args.host_genome_name, args.job_queue,
+            args.uploadchunksize)
+    except requests.exceptions.RequestException as e:
+        sample_error_text(sample_name, e)
+        network_err_text()
+    except Exception as e:
+        sample_error_text(sample_name, e)
+
+
+def sample_files_text(sample, files):
+    print("\nSAMPLE NAME:  " + sample)
+    print("INPUT FILES:  " + " ".join(files))
+
+
+def sample_error_text(sample, err):
+    print("\nFailed to upload \"%s\"" % sample)
+    print("Error: %s" % err)
+
+
+def network_err_text():
+    print(
+        "\nThere was a network error. Please check your network connection "
+        "and try again.\nYour sample may say \"Waiting\" on IDseq but likely "
+        "needs to be re-uploaded (under a different name).")
