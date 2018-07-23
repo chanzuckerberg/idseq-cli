@@ -148,6 +148,7 @@ def main():
     args = parser.parse_args()
 
     # Use https://idseq.net by default
+    print("")
     if not args.url:
         args.url = "https://idseq.net"
 
@@ -161,21 +162,26 @@ def main():
         args.project = required_input("Enter the project name: ")
     if not args.bulk:
         if not args.sample_name:
-            args.sample_name = required_input("Enter the sample name: ")
-        if not args.r1:
-            args.r1 = required_input("Enter the first file (first in a "
-                                     "paired-end run or sole file in a "
-                                     "single-end run): ")
-        if not args.r2:
-            r2 = input("Enter the second paired-end file if applicable (or "
-                       "Enter to skip): ")
-            if r2 != '':
-                args.r2 = r2
-    if not args.host_genome_name:
-        args.host_genome_name = required_input("Enter the host genome name:\n"
-                                               "Options: 'Human', 'Mosquito', "
-                                               "'Tick', or 'ERCC only': "
-                                               "").strip("'")
+            inp = input("Enter the sample name (or press Enter to "
+                                     "use bulk mode): ".ljust(35))
+            if inp is '':
+                args.bulk = "."  # Run bulk auto-detect on the current folder
+            else:
+                args.sample_name = inp
+                if not args.r1:
+                    args.r1 = required_input("Enter the first file (first in a "
+                                             "paired-end run or sole file in a "
+                                             "single-end run): ")
+                if not args.r2:
+                    r2 = input("Enter the second paired-end file if applicable (or "
+                               "press Enter to skip): ")
+                    if r2 != '':
+                        args.r2 = r2
+    while args.host_genome_name not in ["Human", "Mosquito", "Tick",
+                                        "ERCC only"]:
+        args.host_genome_name = required_input(
+            "Enter the host genome name:\nOptions: 'Human', 'Mosquito', "
+            "'Tick', or 'ERCC only': ").strip("'")
 
     print("\n" + "PROJECT:".ljust(20) + args.project)
     print("HOST GENOME:".ljust(20) + args.host_genome_name)

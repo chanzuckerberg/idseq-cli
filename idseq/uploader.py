@@ -220,10 +220,8 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
         print("Connected to the server.")
     else:
         print('\nFailed. Error no: %s' % resp.status_code)
-        print(viewitems(resp.json()))
-        for (err_type, errors) in viewitems(resp.json()):
-            for error in errors:
-                print('Error response from IDseq server :: {0} :: {1}'.format(err_type, error))
+        for err_type, errors in viewitems(resp.json()):
+            print('Error response from IDseq server :: {0} :: {1}'.format(err_type, errors))
         return
 
     if source_type == 'local':
