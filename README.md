@@ -3,7 +3,6 @@
 
 ## Install
 
-- Requires python2
 - `pip install git+https://github.com/chanzuckerberg/idseq-cli.git`
 
 ## Submit a sample

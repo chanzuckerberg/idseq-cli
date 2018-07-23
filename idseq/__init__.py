@@ -145,6 +145,10 @@ def main():
         type=int,
         default=DEFAULT_MAX_PART_SIZE_IN_MB,
         help='Break up uploaded files into chunks of this size in MB')
+    parser.add_argument(
+        '--accept-all',
+        action='store_true',
+        help='Use this argument to automatically accept confirmation messages')
     args = parser.parse_args()
 
     # Use https://idseq.net by default
@@ -193,7 +197,8 @@ def main():
         print("\nSamples and files to upload:")
         for sample, files in viewitems(samples2files):
             sample_files_text(sample, files)
-        uploader.get_user_agreement()
+        if not args.accept_all:
+            uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):
             if len(files) < 2:
                 files.append(None)
@@ -207,7 +212,8 @@ def main():
         validate_file(args.r2, 'R2')
         input_files.append(args.r2)
     sample_files_text(args.sample_name, input_files)
-    uploader.get_user_agreement()
+    if not args.accept_all:
+        uploader.get_user_agreement()
     upload_sample(args.sample_name, args.r1, args.r2, args)
 
 
