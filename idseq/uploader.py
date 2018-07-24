@@ -36,18 +36,20 @@ class File():
         if self.source_type() == 'local' and os.path.getsize(
                 self.path) > max_part_size * 1e6:
             part_prefix = self.path + PART_SUFFIX
-            print("splitting large file into %d MB chunks..." % max_part_size)
+            print("splitting large file into {} MB chunks...".format(
+                max_part_size))
             subprocess.check_output(
-                "split -b %dm %s %s" % (max_part_size, self.path, part_prefix),
+                "split -b {}m {} {}".format(max_part_size, self.path,
+                                            part_prefix),
                 shell=True)
             return subprocess.check_output(
-                "ls %s*" % part_prefix, shell=True).splitlines()
+                "ls {}*".format(part_prefix), shell=True).splitlines()
         else:
             return [self.path]
 
 
 def build_path(bucket, key):
-    return "s3://%s/%s" % (bucket, key)
+    return "s3://{}/{}".format(bucket, key)
 
 
 def determine_level(file_path, search_key):
@@ -62,11 +64,13 @@ def detect_files(path, level=1):
         clean_path = path.rstrip('/')
         bucket = path.split("/")[2]
         file_list = subprocess.check_output(
-            "aws s3 ls %s/ --recursive | awk '{print $4}'" % clean_path,
+            "aws s3 ls {}/ --recursive | awk '{{print $4}}'".format(clean_path),
             shell=True).splitlines()
         return [
             build_path(bucket, f) for f in file_list
-            if re.search(INPUT_REGEX, f) and determine_level(build_path(bucket, f), clean_path) == level
+            if
+            re.search(INPUT_REGEX, f) and determine_level(build_path(bucket, f),
+                                                          clean_path) == level
         ]
     # local source:
     wildcards = "/*" * level
@@ -128,7 +132,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
            sample_unique_id, sample_location, sample_date, sample_tissue,
            sample_template, sample_library, sample_sequencer, sample_notes,
            sample_memory, host_id, host_genome_name, job_queue, chunk_size):
-    print("\nPreparing to uploading sample \"%s\" ..." % sample_name)
+    print("\nPreparing to uploading sample \"{}\" ...".format(sample_name))
 
     files = [File(r1)]
     if r2:
@@ -218,7 +222,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
     if resp.status_code == 201:
         print("Connected to the server.")
     else:
-        print('\nFailed. Error no: %s' % resp.status_code)
+        print('\nFailed. Error no: {}'.format(resp.status_code))
         for err_type, errors in viewitems(resp.json()):
             print(
                 'Error response from IDseq server :: {0} :: {1}'.format(err_type,
@@ -232,7 +236,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
         if num_files == 1:
             msg = "1 file to upload..."
         else:
-            msg = "%d files to upload..." % num_files
+            msg = "{} files to upload...".format(num_files)
         print(msg)
         time.sleep(1)
 
@@ -244,7 +248,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
                 with Tqio(file, i, num_files) as f:
                     requests.put(presigned_url, data=f)
                 if PART_SUFFIX in file:
-                    subprocess.check_output("rm %s" % file, shell=True)
+                    subprocess.check_output("rm {}".format(file), shell=True)
 
         update = {
             "sample": {
@@ -255,13 +259,14 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
         }
 
         resp = requests.put(
-            '%s/samples/%d.json' % (url, data['id']),
+            '{}/samples/{}.json'.format(url, data['id']),
             data=json.dumps(update),
             headers=headers)
 
         if resp.status_code != 200:
-            print("Sample was not successfully uploaded. Status code: %s" % str(
-                resp.status_code))
+            print(
+            "Sample was not successfully uploaded. Status code: {}".format(str(
+                resp.status_code)))
 
 
 def get_user_agreement():
@@ -284,7 +289,7 @@ def get_user_agreement():
 class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
-        self.write_stdout("\nUploading %s...\n\r" % file_path)
+        self.write_stdout("\nUploading {}...\n\r".format(file_path))
         self.progress = 0
         self.chunk_idx = 0
         self.total = os.path.getsize(file_path)
@@ -295,7 +300,7 @@ class Tqio(io.BufferedReader):
         sys.stdout.flush()
 
     def write_percent_stdout(self, percentage):
-        self.write_stdout("%3.1f %% \r" % percentage)
+        self.write_stdout("{:3.1f} % \r".format(percentage))
 
     def update(self, len_chunk):
         self.progress += len_chunk

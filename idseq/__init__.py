@@ -13,8 +13,7 @@ def validate_file(path, name):
     pattern = uploader.INPUT_REGEX
     if not re.search(pattern, path):
         print(
-            "ERROR: %s (%s) file does not appear to be a fastq or fasta file."
-            % (name, path))
+            "ERROR: {} ({}) file does not appear to be a fastq or fasta file.".format(name, path))
         print(
             "Accepted formats: fastq/fq, fasta/fa, fastq.gz/fq.gz, fasta.gz/fa.gz"
         )
@@ -43,7 +42,7 @@ def main():
         '--url',
         metavar='url',
         type=str,
-        help='idseq website url: i.e. dev.idseq.net')
+        help='idseq website url: i.e. https://idseq.net by default')
     parser.add_argument(
         '-e',
         '--email',
@@ -157,28 +156,28 @@ def main():
 
     # Prompt the user for missing fields
     if not args.email:
-        args.email = required_input("Enter your IDseq account email: ")
+        args.email = required_input("\nEnter your IDseq account email: ")
     if not args.token:
-        args.token = required_input("Enter your IDseq authentication token ("
-                                    "found in instructions): ")
+        args.token = required_input("\nEnter your IDseq authentication token:\n("
+                                    "see instructions on idseq.net in the user "
+                                    "menu in the upper-right corner): ")
     if not args.project:
-        args.project = required_input("Enter the project name: ")
+        args.project = required_input("\nEnter the project name: ")
     if not args.bulk:
         if not args.sample_name:
-            inp = input("Enter the sample name (or press Enter to "
-                        "use bulk mode): ".ljust(35))
+            inp = input("{:35}".format("\nEnter the sample name (or press Enter to "
+                        "use bulk mode): "))
             if inp is '':
                 args.bulk = "."  # Run bulk auto-detect on the current folder
             else:
                 args.sample_name = inp
                 if not args.r1:
                     args.r1 = required_input(
-                        "Enter the first file (first in a "
-                        "paired-end run or sole file in a "
-                        "single-end run): ")
+                        "\nEnter the first file:\n(first in a paired-end run or "
+                        "sole file in a single-end run): ")
                 if not args.r2:
                     r2 = input(
-                        "Enter the second paired-end file if applicable (or "
+                        "\nEnter the second paired-end file if applicable (or "
                         "press Enter to skip): ")
                     if r2 != '':
                         args.r2 = r2
@@ -186,11 +185,11 @@ def main():
             "Human", "Mosquito", "Tick", "ERCC only"
     ]:
         args.host_genome_name = required_input(
-            "Enter the host genome name:\nOptions: 'Human', 'Mosquito', "
-            "'Tick', or 'ERCC only': ").strip("'")
+            "\nEnter the host genome name (to be filtered out):\nOptions: "
+            "'Human', 'Mosquito', 'Tick', or 'ERCC only': ").strip("'")
 
-    print("\n" + "PROJECT:".ljust(20) + args.project)
-    print("HOST GENOME:".ljust(20) + args.host_genome_name)
+    print("\n{:20}{}".format("PROJECT:", args.project))
+    print("{:20}{}".format("HOST GENOME:", args.host_genome_name))
 
     # Bulk upload
     if args.bulk:
@@ -198,7 +197,7 @@ def main():
 
         print("\nSamples and files to upload:")
         for sample, files in viewitems(samples2files):
-            sample_files_text(sample, files)
+            print_sample_files_info(sample, files)
         if not args.accept_all:
             uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):
@@ -213,7 +212,7 @@ def main():
     if args.r2:
         validate_file(args.r2, 'R2')
         input_files.append(args.r2)
-    sample_files_text(args.sample_name, input_files)
+    print_sample_files_info(args.sample_name, input_files)
     if not args.accept_all:
         uploader.get_user_agreement()
     upload_sample(args.sample_name, args.r1, args.r2, args)
@@ -243,14 +242,14 @@ def upload_sample(sample_name, file_0, file_1, args):
         sample_error_text(sample_name, e)
 
 
-def sample_files_text(sample, files):
-    print("\n" + "SAMPLE NAME:".ljust(20) + sample)
-    print("INPUT FILES:".ljust(20) + " ".join(files))
+def print_sample_files_info(sample, files):
+    print("\n{:20}{}".format("SAMPLE NAME:", sample))
+    print("{:20}{}".format("INPUT FILES:", " ".join(files)))
 
 
 def sample_error_text(sample, err):
-    print("\nFailed to upload \"%s\"" % sample)
-    print("Error: %s" % err)
+    print("\nFailed to upload \"{}\"".format(sample))
+    print("Error: {}".format(err))
 
 
 def network_err_text():
