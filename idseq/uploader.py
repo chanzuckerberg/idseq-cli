@@ -264,8 +264,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
             headers=headers)
 
         if resp.status_code != 200:
-            print(
-            "Sample was not successfully uploaded. Status code: {}".format(str(
+            print("Sample was not successfully uploaded. Status code: {}".format(str(
                 resp.status_code)))
 
 
