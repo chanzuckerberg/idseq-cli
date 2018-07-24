@@ -66,8 +66,7 @@ def detect_files(path, level=1):
             shell=True).splitlines()
         return [
             build_path(bucket, f) for f in file_list
-            if re.search(INPUT_REGEX, f)
-               and determine_level(build_path(bucket, f), clean_path) == level
+            if re.search(INPUT_REGEX, f) and determine_level(build_path(bucket, f), clean_path) == level
         ]
     # local source:
     wildcards = "/*" * level

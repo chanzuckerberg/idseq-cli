@@ -13,8 +13,8 @@ def validate_file(path, name):
     pattern = uploader.INPUT_REGEX
     if not re.search(pattern, path):
         print(
-                "ERROR: %s (%s) file does not appear to be a fastq or fasta file."
-                % (name, path))
+            "ERROR: %s (%s) file does not appear to be a fastq or fasta file."
+            % (name, path))
         print(
             "Accepted formats: fastq/fq, fasta/fa, fastq.gz/fq.gz, fasta.gz/fa.gz"
         )
@@ -167,22 +167,25 @@ def main():
     if not args.bulk:
         if not args.sample_name:
             inp = input("Enter the sample name (or press Enter to "
-                                     "use bulk mode): ".ljust(35))
+                        "use bulk mode): ".ljust(35))
             if inp is '':
                 args.bulk = "."  # Run bulk auto-detect on the current folder
             else:
                 args.sample_name = inp
                 if not args.r1:
-                    args.r1 = required_input("Enter the first file (first in a "
-                                             "paired-end run or sole file in a "
-                                             "single-end run): ")
+                    args.r1 = required_input(
+                        "Enter the first file (first in a "
+                        "paired-end run or sole file in a "
+                        "single-end run): ")
                 if not args.r2:
-                    r2 = input("Enter the second paired-end file if applicable (or "
-                               "press Enter to skip): ")
+                    r2 = input(
+                        "Enter the second paired-end file if applicable (or "
+                        "press Enter to skip): ")
                     if r2 != '':
                         args.r2 = r2
-    while args.host_genome_name not in ["Human", "Mosquito", "Tick",
-                                        "ERCC only"]:
+    while args.host_genome_name not in [
+            "Human", "Mosquito", "Tick", "ERCC only"
+    ]:
         args.host_genome_name = required_input(
             "Enter the host genome name:\nOptions: 'Human', 'Mosquito', "
             "'Tick', or 'ERCC only': ").strip("'")
