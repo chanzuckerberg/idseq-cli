@@ -1,14 +1,15 @@
+import glob
 import io
 import json
 import os
-import glob
-import sys
-import requests
-import stat
-import time
-import subprocess
 import re
+import stat
+import subprocess
+import sys
+import time
+
 import pkg_resources
+import requests
 from builtins import input
 from future.utils import viewitems
 
@@ -66,7 +67,7 @@ def detect_files(path, level=1):
         return [
             build_path(bucket, f) for f in file_list
             if re.search(INPUT_REGEX, f)
-            and determine_level(build_path(bucket, f), clean_path) == level
+               and determine_level(build_path(bucket, f), clean_path) == level
         ]
     # local source:
     wildcards = "/*" * level
@@ -128,7 +129,6 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
            sample_unique_id, sample_location, sample_date, sample_tissue,
            sample_template, sample_library, sample_sequencer, sample_notes,
            sample_memory, host_id, host_genome_name, job_queue, chunk_size):
-
     print("\nPreparing to uploading sample \"%s\" ..." % sample_name)
 
     files = [File(r1)]
@@ -155,23 +155,23 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
     data = {
         "sample": {
             "name":
-            sample_name,
+                sample_name,
             "project_name":
-            project_name,
+                project_name,
             "input_files_attributes": [{
                 "name":
-                os.path.basename(f.path),
+                    os.path.basename(f.path),
                 "source":
-                f.path,
+                    f.path,
                 "source_type":
-                f.source_type(),
+                    f.source_type(),
                 "parts":
-                ", ".join(f.parts(max_part_size)),
+                    ", ".join(f.parts(max_part_size)),
             } for f in files],
             "status":
-            "created",
+                "created",
             "client":
-            version
+                version
         }
     }
 
@@ -221,7 +221,9 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
     else:
         print('\nFailed. Error no: %s' % resp.status_code)
         for err_type, errors in viewitems(resp.json()):
-            print('Error response from IDseq server :: {0} :: {1}'.format(err_type, errors))
+            print(
+                'Error response from IDseq server :: {0} :: {1}'.format(err_type,
+                                                                        errors))
         return
 
     if source_type == 'local':
@@ -259,7 +261,8 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
             headers=headers)
 
         if resp.status_code != 200:
-            print("Sample was not successfully uploaded. Status code: %s" % str(resp.status_code))
+            print("Sample was not successfully uploaded. Status code: %s" % str(
+                resp.status_code))
 
 
 def get_user_agreement():
@@ -272,10 +275,10 @@ def get_user_agreement():
     msg = "\nConfirm details above.\nProceed (y/N)? Y for yes or N to cancel: "
     prompt(msg)
     msg = "\nYou agree that the data you are " \
-             "uploading to IDseq has been lawfully collected and that you have " \
-             "all necessary consent and authorization to upload it for the " \
-             "purposes outlined in IDseq's Terms of Use (" \
-             "https://idseq.net/terms).\nProceed (y/N)? Y for yes or N to cancel: "
+          "uploading to IDseq has been lawfully collected and that you have " \
+          "all necessary consent and authorization to upload it for the " \
+          "purposes outlined in IDseq's Terms of Use (" \
+          "https://idseq.net/terms).\nProceed (y/N)? Y for yes or N to cancel: "
     prompt(msg)
 
 
