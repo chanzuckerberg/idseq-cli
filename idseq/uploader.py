@@ -228,11 +228,11 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
     if source_type == 'local':
         data = resp.json()
 
-        l = len(data['input_files'])
-        if l == 1:
+        num_files = len(data['input_files'])
+        if num_files == 1:
             msg = "1 file to upload..."
         else:
-            msg = "%d files to upload..." % l
+            msg = "%d files to upload..." % num_files
         print(msg)
         time.sleep(1)
 
@@ -241,7 +241,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
             input_parts = raw_input_file["parts"].split(", ")
             for i, file in enumerate(input_parts):
                 presigned_url = presigned_urls[i]
-                with Tqio(file, i, l) as f:
+                with Tqio(file, i, num_files) as f:
                     requests.put(presigned_url, data=f)
                 if PART_SUFFIX in file:
                     subprocess.check_output("rm %s" % file, shell=True)

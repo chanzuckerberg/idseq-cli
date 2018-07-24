@@ -23,8 +23,7 @@ def validate_file(path, name):
 
 def main():
     parser = argparse.ArgumentParser(
-        description=
-        'Submit a sample to idseq. (Accepts fastq or fasta files, single or paired, gzipped or not.)'
+        description='Submit a sample to idseq. (Accepts fastq or fasta files, single or paired, gzipped or not.)'
     )
 
     parser.add_argument(
