@@ -149,8 +149,10 @@ def main():
         help='Use this argument to automatically accept confirmation messages')
     args = parser.parse_args()
 
+    print("Instructions: https://idseq.net/cli_user_instructions\nStarting "
+          "IDseq command line...")
+
     # Use https://idseq.net by default
-    print("")
     if not args.url:
         args.url = "https://idseq.net"
 
@@ -159,8 +161,8 @@ def main():
         args.email = required_input("\nEnter your IDseq account email: ")
     if not args.token:
         args.token = required_input("\nEnter your IDseq authentication token:\n("
-                                    "see instructions on idseq.net in the user "
-                                    "menu in the upper-right corner): ")
+                                    "see instructions at "
+                                    "http://idseq.net/cli_user_instructions): ")
     if not args.project:
         args.project = required_input("\nEnter the project name: ")
     if not args.bulk:
