@@ -34,7 +34,7 @@ class File():
     def parts(self, max_part_size):
         # Check if any file is over max_part_size and, if so, chunk
         if self.source_type() == 'local' and os.path.getsize(
-                self.path) > max_part_size * 1e6:
+                self.path) > max_part_size * 1048576:
             part_prefix = self.path + PART_SUFFIX
             print("splitting large file into {} MB chunks...".format(
                 max_part_size))
