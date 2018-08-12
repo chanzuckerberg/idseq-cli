@@ -42,6 +42,7 @@ def main():
         '--url',
         metavar='url',
         type=str,
+        default='https://idseq.net',
         help='idseq website url: i.e. https://idseq.net by default')
     parser.add_argument(
         '-e',
