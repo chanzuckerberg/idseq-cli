@@ -153,10 +153,6 @@ def main():
     print("Instructions: https://idseq.net/cli_user_instructions\nStarting "
           "IDseq command line...")
 
-    # Use https://idseq.net by default
-    if not args.url:
-        args.url = "https://idseq.net"
-
     # Prompt the user for missing fields
     if not args.email:
         args.email = required_input("\nEnter your IDseq account email: ")
