@@ -42,6 +42,7 @@ def main():
         '--url',
         metavar='url',
         type=str,
+        default='https://idseq.net',
         help='idseq website url: i.e. https://idseq.net by default')
     parser.add_argument(
         '-e',
@@ -151,10 +152,6 @@ def main():
 
     print("Instructions: https://idseq.net/cli_user_instructions\nStarting "
           "IDseq command line...")
-
-    # Use https://idseq.net by default
-    if not args.url:
-        args.url = "https://idseq.net"
 
     # Prompt the user for missing fields
     if not args.email:
