@@ -184,7 +184,7 @@ def main():
     host_genome_display = "'" + "' / '".join(host_genomes) + "'"
     while args.host_genome_name not in host_genomes:
         args.host_genome_name = required_input(
-            "\nEnter the host genome name (to be filtered out):\nOptions: "
+            "\nEnter the host genome name (to be filtered out):\nOptions: " +
             host_genome_display + ": ").strip("'")
 
     print("\n{:20}{}".format("PROJECT:", args.project))
