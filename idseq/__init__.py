@@ -181,11 +181,14 @@ def main():
                     if r2 != '':
                         args.r2 = r2
     while args.host_genome_name not in [
-            "Human", "Mosquito", "Tick", "ERCC only"
+            "Human", "Mosquito", "Tick", "Mouse", "ERCC only"
     ]:
+        # TODO:
+        # (1) deduplicate list of host genomes
+        # (2) consider getting this list through a request to idseq-web?
         args.host_genome_name = required_input(
             "\nEnter the host genome name (to be filtered out):\nOptions: "
-            "'Human', 'Mosquito', 'Tick', or 'ERCC only': ").strip("'")
+            "'Human', 'Mosquito', 'Tick', 'Mouse', or 'ERCC only': ").strip("'")
 
     print("\n{:20}{}".format("PROJECT:", args.project))
     print("{:20}{}".format("HOST GENOME:", args.host_genome_name))
