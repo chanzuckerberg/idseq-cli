@@ -180,12 +180,12 @@ def main():
                         "press Enter to skip): ")
                     if r2 != '':
                         args.r2 = r2
-    while args.host_genome_name not in [
-            "Human", "Mosquito", "Tick", "ERCC only"
-    ]:
+    host_genomes = ["Human", "Mosquito", "Tick", "Mouse", "ERCC only"]
+    host_genome_display = "'" + "' / '".join(host_genomes) + "'"
+    while args.host_genome_name not in host_genomes:
         args.host_genome_name = required_input(
-            "\nEnter the host genome name (to be filtered out):\nOptions: "
-            "'Human', 'Mosquito', 'Tick', or 'ERCC only': ").strip("'")
+            "\nEnter the host genome name (to be filtered out):\nOptions: " +
+            host_genome_display + ": ").strip("'")
 
     print("\n{:20}{}".format("PROJECT:", args.project))
     print("{:20}{}".format("HOST GENOME:", args.host_genome_name))
