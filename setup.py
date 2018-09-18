@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='idseq',
-      version='0.5.0',
+      version='0.5.1',
       description='IDseq CLI',
       url='http://github.com/chanzuckerberg/idsdeq-cli',
       author='Chan Zuckerberg Initiative, LLC',
@@ -10,5 +10,5 @@ setup(name='idseq',
       packages=['idseq'],
       zip_safe=False,
       install_requires=['future', 'requests'],
-      entry_points={'console_scripts': ['idseq=idseq:main']},
+      entry_points={'console_scripts': ['idseq=idseq/cli:main']},
       extras_require={'dev': ['flake8']})
