@@ -3,7 +3,7 @@
 
 ### (1) Install and configure the Amazon Web Services Command Line Interface (AWS CLI):
 
-Installation instructions here (https://docs.aws.amazon.com/cli/latest/userguide/installing.html). Verify it works by running `aws help`, which should display usage instructions. You do not need to set up AWS credentials.
+Installation instructions here (https://docs.aws.amazon.com/cli/latest/userguide/installing.html). Verify it works by running `aws help`, which should display usage instructions. You do not need to set up AWS credentials unless you are using the bulk upload mode.
 
 ### (2) Install the IDseq CLI:
 
