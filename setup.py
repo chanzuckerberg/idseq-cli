@@ -10,5 +10,5 @@ setup(name='idseq',
       packages=['idseq'],
       zip_safe=False,
       install_requires=['future', 'requests'],
-      entry_points={'console_scripts': ['idseq=idseq/cli:main']},
+      entry_points={'console_scripts': ['idseq=idseq.cli:main']},
       extras_require={'dev': ['flake8']})
