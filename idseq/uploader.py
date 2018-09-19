@@ -68,7 +68,7 @@ def detect_files(path, level=1):
             shell=True).splitlines()
         file_list = [f.decode("UTF-8") for f in file_list]
         return [
-            build_path(bucket, f) 
+            build_path(bucket, f)
             for f in file_list
             if re.search(INPUT_REGEX, f) and determine_level(build_path(bucket, f), clean_path) == level
         ]

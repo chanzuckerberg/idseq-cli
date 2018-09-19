@@ -187,7 +187,7 @@ def main():
 
     print("\n{:20}{}".format("PROJECT:", args.project))
     print("{:20}{}".format("HOST GENOME:", args.host_genome_name))
-    
+
     # Bulk upload
     if args.bulk:
         samples2files = uploader.detect_samples(args.bulk)
