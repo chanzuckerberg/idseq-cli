@@ -1,7 +1,7 @@
 import argparse
 import re
 import requests
-import uploader
+from . import uploader
 
 from builtins import input
 from future.utils import viewitems
