@@ -3,7 +3,15 @@
 
 ### (1) Install and configure the Amazon Web Services Command Line Interface (AWS CLI):
 
-Installation instructions here (https://docs.aws.amazon.com/cli/latest/userguide/installing.html). Verify it works by running `aws help`, which should display usage instructions. You do not need to set up AWS credentials unless you are using the bulk upload mode.
+For macOS users: We recommend trying the Homebrew package manager to install `awscli`. You can install by running these commands:
+
+`/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+
+`brew install awscli`
+
+- Otherwise follow the AWS installation instructions here: https://docs.aws.amazon.com/cli/latest/userguide/installing.html
+
+- Verify it works by running `aws help`, which should display usage instructions. You do not need to set up AWS credentials unless you're using the bulk upload mode.
 
 ### (2) Install the IDseq CLI:
 
