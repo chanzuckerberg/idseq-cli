@@ -1,3 +1,23 @@
+# [IDseq](https://idseq.net/) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/chanzuckerberg/idseq-web/blob/master/LICENSE) [![Build Status](https://travis-ci.org/chanzuckerberg/idseq-cli.svg?branch=master)](https://travis-ci.org/chanzuckerberg/idseq-cli) ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+
+![logo](https://assets.idseq.net/Logo_Black.png)
+
+#### Infectious Disease Sequencing Platform
+IDseq is an unbiased global software platform that helps scientists identify pathogens in metagenomic sequencing data.
+
+- **Discover** - Identify the pathogen landscape
+- **Detect** - Monitor and review potential outbreaks
+- **Decipher** - Find potential infecting organisms in large datasets
+
+A collaborative open project of [Chan Zuckerberg Initiative](https://www.chanzuckerberg.com/) and [Chan Zuckerberg Biohub](https://czbiohub.org).
+
+Check out our repositories:
+- [idseq-web](https://github.com/chanzuckerberg/idseq-web) - Frontend portal
+- [idseq-dag](https://github.com/chanzuckerberg/idseq-dag) - Bioinformatics pipeline and workflow engine
+- [idseq-cli](https://github.com/chanzuckerberg/idseq-cli) - Command line upload interface (here)
+- [idseq-bench](https://github.com/chanzuckerberg/idseq-bench) - Pipeline benchmarking tools 
+
+
 ## Usage Instructions
 - See live instructions and view your user token at https://idseq.net/cli_user_instructions
 
