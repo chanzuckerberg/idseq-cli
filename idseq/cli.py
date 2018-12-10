@@ -178,7 +178,7 @@ def main():
                         "press Enter to skip): ")
                     if r2 != '':
                         args.r2 = r2
-    host_genomes = ["Human", "Mosquito", "Tick", "Mouse", "ERCC only"]
+    host_genomes = ["Human", "Mosquito", "Tick", "Mouse", "Cat", "ERCC only"]
     host_genome_display = "'" + "' / '".join(host_genomes) + "'"
     while args.host_genome_name not in host_genomes:
         args.host_genome_name = required_input(
