@@ -1,7 +1,7 @@
 import argparse
 import re
 import requests
-from . import uploader
+import uploader
 
 from builtins import input
 from future.utils import viewitems
@@ -195,6 +195,7 @@ def main():
         print("\nSamples and files to upload:")
         for sample, files in viewitems(samples2files):
             print_sample_files_info(sample, files)
+        uploader.get_user_metadata(args.url, args.email, args.token)
         if not args.accept_all:
             uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):
@@ -210,6 +211,7 @@ def main():
         validate_file(args.r2, 'R2')
         input_files.append(args.r2)
     print_sample_files_info(args.sample_name, input_files)
+    uploader.get_user_metadata(args.url, args.email, args.token)
     if not args.accept_all:
         uploader.get_user_agreement()
     upload_sample(args.sample_name, args.r1, args.r2, args)
