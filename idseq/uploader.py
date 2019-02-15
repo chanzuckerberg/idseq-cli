@@ -43,7 +43,7 @@ class File():
                                             part_prefix),
                 shell=True)
             return subprocess.check_output(
-                "ls {}*".format(part_prefix), shell=True).splitlines()
+                "ls {}*".format(part_prefix), shell=True).decode("utf-8").splitlines()
         else:
             return [self.path]
 
