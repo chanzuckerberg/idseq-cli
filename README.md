@@ -48,7 +48,7 @@ For macOS users: We recommend trying the Homebrew package manager to install `aw
 - Replace YOUR_EMAIL with your IDseq email and YOUR_TOKEN with your upload token.
 - Supported file types: .fastq/.fq/.fasta/.fa or .fastq.gz/.fq.gz/.fasta.gz/.fa.gz
 
-- Supported host genome values: 'Human', 'Mosquito', 'Tick', 'Mouse', 'Cat', 'ERCC only'
+- Supported host genome values: 'Human', 'Mosquito', 'Tick', 'Mouse', 'Cat', 'Pig', 'ERCC only'
 
 - Your authentication token for uploading is the token after -t. Keep this private like a password!
 
