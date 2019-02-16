@@ -188,6 +188,14 @@ def main():
     print("\n{:20}{}".format("PROJECT:", args.project))
     print("{:20}{}".format("HOST GENOME:", args.host_genome_name))
 
+    # Header for server requests
+    headers = {
+        "Accept": "application/json",
+        "Content-type": "application/json",
+        "X-User-Email": args.email,
+        "X-User-Token": args.token,
+    }
+
     # Bulk upload
     if args.bulk:
         samples2files = uploader.detect_samples(args.bulk)
@@ -195,7 +203,7 @@ def main():
         print("\nSamples and files to upload:")
         for sample, files in viewitems(samples2files):
             print_sample_files_info(sample, files)
-        uploader.get_user_metadata(args.url, args.email, args.token)
+        uploader.get_user_metadata(args.url, headers, list(samples2files.keys()), args.host_genome_name)
         if not args.accept_all:
             uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):
@@ -211,7 +219,7 @@ def main():
         validate_file(args.r2, 'R2')
         input_files.append(args.r2)
     print_sample_files_info(args.sample_name, input_files)
-    uploader.get_user_metadata(args.url, args.email, args.token)
+    uploader.get_user_metadata(args.url, headers, [args.sample_name], args.host_genome_name)
     if not args.accept_all:
         uploader.get_user_agreement()
     upload_sample(args.sample_name, args.r1, args.r2, args)

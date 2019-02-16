@@ -9,6 +9,7 @@ import stat
 import subprocess
 import sys
 import time
+import csv
 
 from builtins import input
 from future.utils import viewitems
@@ -226,13 +227,6 @@ def upload(
     if job_queue:
         data["sample"]["job_queue"] = job_queue
 
-    headers = {
-        "Accept": "application/json",
-        "Content-type": "application/json",
-        "X-User-Email": email,
-        "X-User-Token": token,
-    }
-
     resp = requests.post(url + "/samples.json", data=json.dumps(data), headers=headers)
 
     if resp.status_code == 201:
@@ -306,7 +300,7 @@ def get_user_agreement():
     prompt(msg)
 
 
-def get_user_metadata(base_url, email, token):
+def get_user_metadata(base_url, headers, sample_names, host_genome_name):
     print(
         "\n\nPlease provide some metadata for your sample(s):"
         "\n\nInstructions: https://idseq.net/metadata/instructions"
@@ -315,17 +309,36 @@ def get_user_metadata(base_url, email, token):
     )
     metadata_file = input("\nEnter the metadata file: ")
 
-    headers = {
-        "Accept": "application/json",
-        "Content-type": "application/json",
-        "X-User-Email": email,
-        "X-User-Token": token,
-    }
+    # Loop for metadata CSV validation
+    errors = [-1]
+    while len(errors) != 0:
+        with open(metadata_file) as f:
+            csv_data = list(csv.reader(f))
 
-    with open(metadata_file) as f:
-        resp = requests.post(base_url + "/metadata/validate_csv_for_new_samples", data=f, headers=headers)
-    print(resp)
-    print("foobar 2:48pm")
+        # Format data for the validation endpoint
+        data = {
+            "metadata": {"headers": csv_data[0], "rows": csv_data[1:]},
+            "samples": [
+                {"name": sname, "host_genome_name": host_genome_name}
+                for sname in sample_names
+            ],
+        }
+        resp = requests.post(
+            base_url + "/metadata/validate_csv_for_new_samples.json",
+            data=json.dumps(data),
+            headers=headers,
+        )
+
+        # Handle errors
+        resp = json.loads(resp.text)
+        errors = resp.get("issues", {}).get("errors", {})
+        if len(errors) == 0:
+            print("CSV validation successful!")
+            break
+        else:
+            print("\nPlease fix these errors and press Enter to upload again:\n")
+            print("\n".join(errors))
+            input()
 
 
 class Tqio(io.BufferedReader):
