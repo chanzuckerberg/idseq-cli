@@ -22,33 +22,29 @@ PAIRED_REGEX = "(.+)(_R\d)(_001)?\.(fastq|fq|fasta|fa)(\.gz|$)"
 PART_SUFFIX = "__AWS-MULTI-PART-"
 
 
-class File:
+class File():
     def __init__(self, path):
         self.path = path
 
     def source_type(self):
-        if self.path.startswith("s3://"):
-            return "s3"
+        if self.path.startswith('s3://'):
+            return 's3'
         elif stat.S_ISREG(os.stat(self.path).st_mode):
-            return "local"
+            return 'local'
 
     def parts(self, max_part_size):
         # Check if any file is over max_part_size and, if so, chunk
-        if (
-            self.source_type() == "local"
-            and os.path.getsize(self.path) > max_part_size * 1048576
-        ):
+        if self.source_type() == 'local' and os.path.getsize(
+                self.path) > max_part_size * 1048576:
             part_prefix = self.path + PART_SUFFIX
-            print("splitting large file into {} MB chunks...".format(max_part_size))
+            print("splitting large file into {} MB chunks...".format(
+                max_part_size))
             subprocess.check_output(
-                "split -b {}m {} {}".format(max_part_size, self.path, part_prefix),
-                shell=True,
-            )
-            return (
-                subprocess.check_output("ls {}*".format(part_prefix), shell=True)
-                .decode("utf-8")
-                .splitlines()
-            )
+                "split -b {}m {} {}".format(max_part_size, self.path,
+                                            part_prefix),
+                shell=True)
+            return subprocess.check_output(
+                "ls {}*".format(part_prefix), shell=True).decode("utf-8").splitlines()
         else:
             return [self.path]
 
@@ -65,32 +61,32 @@ def determine_level(file_path, search_key):
 
 def detect_files(path, level=1):
     # S3 source (user needs access to the location they're trying to upload from):
-    if path.startswith("s3://"):
-        clean_path = path.rstrip("/")
+    if path.startswith('s3://'):
+        clean_path = path.rstrip('/')
         bucket = path.split("/")[2]
         file_list = subprocess.check_output(
             "aws s3 ls {}/ --recursive | awk '{{print $4}}'".format(clean_path),
-            shell=True,
-        ).splitlines()
+            shell=True).splitlines()
         file_list = [f.decode("UTF-8") for f in file_list]
         return [
             build_path(bucket, f)
             for f in file_list
-            if re.search(INPUT_REGEX, f)
-            and determine_level(build_path(bucket, f), clean_path) == level
+            if re.search(INPUT_REGEX, f) and determine_level(build_path(bucket, f), clean_path) == level
         ]
     # local source:
     wildcards = "/*" * level
     return [
-        f
-        for f in glob.glob(path + wildcards)
+        f for f in glob.glob(path + wildcards)
         if re.search(INPUT_REGEX, f) and os.stat(f).st_size > 0
     ]
 
 
 def clean_samples2files(samples2files):
     # Sort files (R1 before R2) and remove samples that don't have 1 or 2 files:
-    return {k: sorted(v) for k, v in viewitems(samples2files) if len(v) in [1, 2]}
+    return {
+        k: sorted(v)
+        for k, v in viewitems(samples2files) if len(v) in [1, 2]
+    }
 
 
 def detect_samples(path):
@@ -102,10 +98,10 @@ def detect_samples(path):
         for f in files_level1:
             m2 = re.search(PAIRED_REGEX, f)
             m = re.search(INPUT_REGEX, f)
-            sample_name = (
-                os.path.basename(m2.group(1)) if m2 else os.path.basename(m.group(1))
-            )
-            samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
+            sample_name = os.path.basename(
+                m2.group(1)) if m2 else os.path.basename(m.group(1))
+            samples2files[sample_name] = samples2files.get(sample_name,
+                                                           []) + [f]
         return clean_samples2files(samples2files)
     # If there are no top-level files, try to find them in subfolders.
     # In this case, each subfolder corresponds to one sample.
@@ -113,7 +109,8 @@ def detect_samples(path):
     if files_level2:
         for f in files_level2:
             sample_name = os.path.basename(os.path.dirname(f))
-            samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
+            samples2files[sample_name] = samples2files.get(sample_name,
+                                                           []) + [f]
         return clean_samples2files(samples2files)
     # If there are still no suitable files, tell the user hopw folders must be structured.
     print(
@@ -131,32 +128,12 @@ def detect_samples(path):
     raise ValueError()
 
 
-def upload(
-    sample_name,
-    project_name,
-    email,
-    token,
-    url,
-    r1,
-    r2,
-    preload_s3_path,
-    starindex_s3_path,
-    bowtie2index_s3_path,
-    sample_unique_id,
-    sample_location,
-    sample_date,
-    sample_tissue,
-    sample_template,
-    sample_library,
-    sample_sequencer,
-    sample_notes,
-    sample_memory,
-    host_id,
-    host_genome_name,
-    job_queue,
-    chunk_size,
-):
-    print('\nPreparing to uploading sample "{}" ...'.format(sample_name))
+def upload(sample_name, project_name, headers, url, r1, r2,
+           preload_s3_path, starindex_s3_path, bowtie2index_s3_path,
+           sample_unique_id, sample_location, sample_date, sample_tissue,
+           sample_template, sample_library, sample_sequencer, sample_notes,
+           sample_memory, host_id, host_genome_name, job_queue, chunk_size):
+    print("\nPreparing to uploading sample \"{}\" ...".format(sample_name))
 
     files = [File(r1)]
     if r2:
@@ -165,7 +142,8 @@ def upload(
     source_type = files[0].source_type()
 
     # Raise exception if a file is empty
-    if source_type == "local" and any(os.stat(f.path).st_size == 0 for f in files):
+    if source_type == 'local' and any(
+            os.stat(f.path).st_size == 0 for f in files):
         print("ERROR: input file must not be empty")
         raise ValueError()
 
@@ -180,19 +158,24 @@ def upload(
     version = pkg_resources.require("idseq")[0].version
     data = {
         "sample": {
-            "name": sample_name,
-            "project_name": project_name,
-            "input_files_attributes": [
-                {
-                    "name": os.path.basename(f.path),
-                    "source": f.path,
-                    "source_type": f.source_type(),
-                    "parts": ", ".join(f.parts(max_part_size)),
-                }
-                for f in files
-            ],
-            "status": "created",
-            "client": version,
+            "name":
+                sample_name,
+            "project_name":
+                project_name,
+            "input_files_attributes": [{
+                "name":
+                    os.path.basename(f.path),
+                "source":
+                    f.path,
+                "source_type":
+                    f.source_type(),
+                "parts":
+                    ", ".join(f.parts(max_part_size)),
+            } for f in files],
+            "status":
+                "created",
+            "client":
+                version
         }
     }
 
@@ -227,24 +210,23 @@ def upload(
     if job_queue:
         data["sample"]["job_queue"] = job_queue
 
-    resp = requests.post(url + "/samples.json", data=json.dumps(data), headers=headers)
+    resp = requests.post(
+        url + '/samples.json', data=json.dumps(data), headers=headers)
 
     if resp.status_code == 201:
         print("Connected to the server.")
     else:
-        print("\nFailed. Error no: {}".format(resp.status_code))
+        print('\nFailed. Error no: {}'.format(resp.status_code))
         for err_type, errors in viewitems(resp.json()):
             print(
-                "Error response from IDseq server :: {0} :: {1}".format(
-                    err_type, errors
-                )
-            )
+                'Error response from IDseq server :: {0} :: {1}'.format(err_type,
+                                                                        errors))
         return
 
-    if source_type == "local":
+    if source_type == 'local':
         data = resp.json()
 
-        num_files = len(data["input_files"])
+        num_files = len(data['input_files'])
         if num_files == 1:
             msg = "1 file to upload..."
         else:
@@ -252,8 +234,8 @@ def upload(
         print(msg)
         time.sleep(1)
 
-        for raw_input_file in data["input_files"]:
-            presigned_urls = raw_input_file["presigned_url"].split(", ")
+        for raw_input_file in data['input_files']:
+            presigned_urls = raw_input_file['presigned_url'].split(", ")
             input_parts = raw_input_file["parts"].split(", ")
             for i, file in enumerate(input_parts):
                 presigned_url = presigned_urls[i]
@@ -263,21 +245,21 @@ def upload(
                     subprocess.check_output("rm {}".format(file), shell=True)
 
         update = {
-            "sample": {"id": data["id"], "name": sample_name, "status": "uploaded"}
+            "sample": {
+                "id": data['id'],
+                "name": sample_name,
+                "status": "uploaded"
+            }
         }
 
         resp = requests.put(
-            "{}/samples/{}.json".format(url, data["id"]),
+            '{}/samples/{}.json'.format(url, data['id']),
             data=json.dumps(update),
-            headers=headers,
-        )
+            headers=headers)
 
         if resp.status_code != 200:
-            print(
-                "Sample was not successfully uploaded. Status code: {}".format(
-                    str(resp.status_code)
-                )
-            )
+            print("Sample was not successfully uploaded. Status code: {}".format(str(
+                resp.status_code)))
 
 
 def get_user_agreement():
@@ -289,14 +271,12 @@ def get_user_agreement():
 
     msg = "\nConfirm details above.\nProceed (y/N)? y for yes or N to cancel: "
     prompt(msg)
-    msg = (
-        "\nI agree that the data I am uploading to IDseq has been lawfully "
-        "collected and that I have all the necessary consents, permissions, "
-        "and authorizations needed to collect, share, and export data to "
-        "IDseq as outlined in the Terms (https://assets.idseq.net/Terms.pdf) and Data "
-        "Privacy Notice (https://assets.idseq.net/Privacy.pdf).\nProceed (y/N)? y for "
-        "yes or N to cancel: "
-    )
+    msg = "\nI agree that the data I am uploading to IDseq has been lawfully " \
+          "collected and that I have all the necessary consents, permissions, " \
+          "and authorizations needed to collect, share, and export data to " \
+          "IDseq as outlined in the Terms (https://assets.idseq.net/Terms.pdf) and Data " \
+          "Privacy Notice (https://assets.idseq.net/Privacy.pdf).\nProceed (y/N)? y for " \
+          "yes or N to cancel: "
     prompt(msg)
 
 
@@ -327,7 +307,7 @@ def get_user_metadata(base_url, headers, sample_names, host_genome_name):
             base_url + "/metadata/validate_csv_for_new_samples.json",
             data=json.dumps(data),
             headers=headers,
-        )
+            )
 
         # Handle errors
         resp = json.loads(resp.text)

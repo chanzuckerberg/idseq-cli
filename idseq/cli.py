@@ -188,7 +188,7 @@ def main():
     print("\n{:20}{}".format("PROJECT:", args.project))
     print("{:20}{}".format("HOST GENOME:", args.host_genome_name))
 
-    # Header for server requests
+    # Headers for server requests
     headers = {
         "Accept": "application/json",
         "Content-type": "application/json",
@@ -209,7 +209,7 @@ def main():
         for sample, files in viewitems(samples2files):
             if len(files) < 2:
                 files.append(None)
-            upload_sample(sample, files[0], files[1], args)
+            upload_sample(sample, files[0], files[1], headers, args)
         return
 
     # Single upload
@@ -222,7 +222,7 @@ def main():
     uploader.get_user_metadata(args.url, headers, [args.sample_name], args.host_genome_name)
     if not args.accept_all:
         uploader.get_user_agreement()
-    upload_sample(args.sample_name, args.r1, args.r2, args)
+    upload_sample(args.sample_name, args.r1, args.r2, headers, args)
 
 
 def required_input(msg):
@@ -232,10 +232,10 @@ def required_input(msg):
     return resp
 
 
-def upload_sample(sample_name, file_0, file_1, args):
+def upload_sample(sample_name, file_0, file_1, headers, args):
     try:
         uploader.upload(
-            sample_name, args.project, args.email, args.token, args.url,
+            sample_name, args.project, headers, args.url,
             file_0, file_1, args.preload, args.starindex, args.bowtie2index,
             args.samplehost, args.samplelocation, args.sampledate,
             args.sampletissue, args.sampletemplate, args.samplelibrary,
