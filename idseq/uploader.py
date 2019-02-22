@@ -154,8 +154,8 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
     version = pkg_resources.require("idseq")[0].version
 
     csv_data = {}
-    with open(metadata_file) as f:
-        for row in list(csv.DictReader(f)):
+    with open(metadata_file) as file_data:
+        for row in list(csv.DictReader(file_data)):
             name = row.pop("sample_name")
             csv_data[name] = row
 
@@ -277,7 +277,7 @@ def get_user_metadata(base_url, headers, sample_names):
                 base_url + "/metadata/validate_csv_for_new_samples.json",
                 data=json.dumps(data),
                 headers=headers,
-                )
+            )
 
             # Handle errors
             resp = json.loads(resp.text)
