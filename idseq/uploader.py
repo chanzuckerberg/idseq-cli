@@ -157,66 +157,40 @@ def upload(sample_name, project_name, headers, url, r1, r2,
     # Get version of CLI from setuptools
     version = pkg_resources.require("idseq")[0].version
     data = {
-        "sample": {
-            "name":
-                sample_name,
-            "project_name":
-                project_name,
-            "input_files_attributes": [{
-                "name":
-                    os.path.basename(f.path),
-                "source":
-                    f.path,
-                "source_type":
-                    f.source_type(),
-                "parts":
-                    ", ".join(f.parts(max_part_size)),
-            } for f in files],
-            "status":
-                "created",
-            "client":
-                version
-        }
+        "samples": [
+            {
+                "name": sample_name,
+                "project_name": project_name,
+                "input_files_attributes": [
+                    {
+                        "name": os.path.basename(f.path),
+                        "source": f.path,
+                        "source_type": f.source_type(),
+                        "parts": ", ".join(f.parts(max_part_size)),
+                    }
+                    for f in files
+                ],
+                "status": "created"
+            }
+        ],
+        "client": version
     }
 
-    if preload_s3_path:
-        data["sample"]["s3_preload_result_path"] = preload_s3_path
-    if starindex_s3_path:
-        data["sample"]["s3_star_index_path"] = starindex_s3_path
-    if bowtie2index_s3_path:
-        data["sample"]["s3_bowtie2_index_path"] = bowtie2index_s3_path
-    if sample_unique_id:
-        data["sample"]["sample_unique_id"] = sample_unique_id
-    if sample_location:
-        data["sample"]["sample_location"] = sample_location
-    if sample_date:
-        data["sample"]["sample_date"] = sample_date
-    if sample_tissue:
-        data["sample"]["sample_tissue"] = sample_tissue
-    if sample_template:
-        data["sample"]["sample_template"] = sample_template
-    if sample_library:
-        data["sample"]["sample_library"] = sample_library
-    if sample_sequencer:
-        data["sample"]["sample_sequencer"] = sample_sequencer
-    if sample_notes:
-        data["sample"]["sample_notes"] = sample_notes
-    if sample_memory:
-        data["sample"]["sample_memory"] = int(sample_memory)
     if host_id:
-        data["sample"]["host_genome_id"] = int(host_id)
+        data["host_genome_id"] = int(host_id)
     if host_genome_name:
-        data["sample"]["host_genome_name"] = host_genome_name
-    if job_queue:
-        data["sample"]["job_queue"] = job_queue
+        data["host_genome_name"] = host_genome_name
 
+    print(f"here's our data: {data}")
     resp = requests.post(
-        url + '/samples.json', data=json.dumps(data), headers=headers)
+        url + '/samples/bulk_upload_with_metadata.json', data=json.dumps(data), headers=headers)
 
-    if resp.status_code == 201:
+    if resp.status_code in range(200, 300):
         print("Connected to the server.")
     else:
         print('\nFailed. Error no: {}'.format(resp.status_code))
+        print(resp.text)
+        print(resp.json())
         for err_type, errors in viewitems(resp.json()):
             print(
                 'Error response from IDseq server :: {0} :: {1}'.format(err_type,
@@ -225,6 +199,7 @@ def upload(sample_name, project_name, headers, url, r1, r2,
 
     if source_type == 'local':
         data = resp.json()
+        print(data)
 
         num_files = len(data['input_files'])
         if num_files == 1:
@@ -252,7 +227,7 @@ def upload(sample_name, project_name, headers, url, r1, r2,
             }
         }
 
-        resp = requests.put(
+        resp = requests.post(
             '{}/samples/{}.json'.format(url, data['id']),
             data=json.dumps(update),
             headers=headers)
@@ -280,7 +255,7 @@ def get_user_agreement():
     prompt(msg)
 
 
-def get_user_metadata(base_url, headers, sample_names, host_genome_name):
+def get_user_metadata(base_url, headers, sample_names):
     print(
         "\n\nPlease provide some metadata for your sample(s):"
         "\n\nInstructions: https://idseq.net/metadata/instructions"
@@ -292,33 +267,37 @@ def get_user_metadata(base_url, headers, sample_names, host_genome_name):
     # Loop for metadata CSV validation
     errors = [-1]
     while len(errors) != 0:
-        with open(metadata_file) as f:
-            csv_data = list(csv.reader(f))
+        try:
+            with open(metadata_file) as f:
+                csv_data = list(csv.reader(f))
 
-        # Format data for the validation endpoint
-        data = {
-            "metadata": {"headers": csv_data[0], "rows": csv_data[1:]},
-            "samples": [
-                {"name": sname, "host_genome_name": host_genome_name}
-                for sname in sample_names
-            ],
-        }
-        resp = requests.post(
-            base_url + "/metadata/validate_csv_for_new_samples.json",
-            data=json.dumps(data),
-            headers=headers,
-            )
+            # Format data for the validation endpoint
+            data = {
+                "metadata": {"headers": csv_data[0], "rows": csv_data[1:]},
+                "samples": [
+                    {"name": name} for name in sample_names
+                ],
+            }
+            resp = requests.post(
+                base_url + "/metadata/validate_csv_for_new_samples.json",
+                data=json.dumps(data),
+                headers=headers,
+                )
 
-        # Handle errors
-        resp = json.loads(resp.text)
-        errors = resp.get("issues", {}).get("errors", {})
+            # Handle errors
+            resp = json.loads(resp.text)
+            errors = resp.get("issues", {}).get("errors", {})
+        except (OSError, json.decoder.JSONDecodeError, requests.exceptions.RequestException) as err:
+            errors = [str(err)]
+
         if len(errors) == 0:
-            print("CSV validation successful!")
+            print("\nCSV validation successful!")
             break
         else:
-            print("\nPlease fix these errors and press Enter to upload again:\n")
             print("\n".join(errors))
-            input()
+            resp = input("\nFix these errors and press Enter to upload again. Or enter a different "
+                         "file name: ")
+            metadata_file = resp or metadata_file
 
 
 class Tqio(io.BufferedReader):

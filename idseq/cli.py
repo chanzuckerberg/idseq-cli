@@ -5,6 +5,7 @@ import uploader
 
 from builtins import input
 from future.utils import viewitems
+import traceback
 
 
 def validate_file(path, name):
@@ -203,7 +204,7 @@ def main():
         print("\nSamples and files to upload:")
         for sample, files in viewitems(samples2files):
             print_sample_files_info(sample, files)
-        uploader.get_user_metadata(args.url, headers, list(samples2files.keys()), args.host_genome_name)
+        uploader.get_user_metadata(args.url, headers, list(samples2files.keys()))
         if not args.accept_all:
             uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):
@@ -219,7 +220,7 @@ def main():
         validate_file(args.r2, 'R2')
         input_files.append(args.r2)
     print_sample_files_info(args.sample_name, input_files)
-    uploader.get_user_metadata(args.url, headers, [args.sample_name], args.host_genome_name)
+    uploader.get_user_metadata(args.url, headers, [args.sample_name])
     if not args.accept_all:
         uploader.get_user_agreement()
     upload_sample(args.sample_name, args.r1, args.r2, headers, args)
@@ -246,6 +247,9 @@ def upload_sample(sample_name, file_0, file_1, headers, args):
         sample_error_text(sample_name, e)
         network_err_text()
     except Exception as e:
+        print("exception caught")
+        print(e)
+        traceback.print_exc()
         sample_error_text(sample_name, e)
 
 
