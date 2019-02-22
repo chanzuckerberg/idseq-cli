@@ -186,9 +186,6 @@ def main():
             "\nEnter the host genome name (to be filtered out):\nOptions: " +
             host_genome_display + ": ").strip("'")
 
-    print("\n{:20}{}".format("PROJECT:", args.project))
-    print("{:20}{}".format("HOST GENOME:", args.host_genome_name))
-
     # Headers for server requests
     headers = {
         "Accept": "application/json",
@@ -196,6 +193,11 @@ def main():
         "X-User-Email": args.email,
         "X-User-Token": args.token,
     }
+
+    args.project, args.project_id = uploader.validate_project(args.url, headers, args.project)
+
+    print("\n{:20}{}".format("PROJECT:", args.project))
+    print("{:20}{}".format("HOST GENOME:", args.host_genome_name))
 
     # Bulk upload
     if args.bulk:
@@ -236,13 +238,9 @@ def required_input(msg):
 def upload_sample(sample_name, file_0, file_1, headers, args):
     try:
         uploader.upload(
-            sample_name, args.project, headers, args.url,
-            file_0, file_1, args.preload, args.starindex, args.bowtie2index,
-            args.samplehost, args.samplelocation, args.sampledate,
-            args.sampletissue, args.sampletemplate, args.samplelibrary,
-            args.samplesequencer, args.samplenotes, args.samplememory,
-            args.host_id, args.host_genome_name, args.job_queue,
-            args.uploadchunksize)
+            sample_name, args.project_id, headers, args.url, file_0, file_1,
+            args.host_genome_name, args.uploadchunksize
+        )
     except requests.exceptions.RequestException as e:
         sample_error_text(sample_name, e)
         network_err_text()

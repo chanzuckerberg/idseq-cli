@@ -128,11 +128,7 @@ def detect_samples(path):
     raise ValueError()
 
 
-def upload(sample_name, project_name, headers, url, r1, r2,
-           preload_s3_path, starindex_s3_path, bowtie2index_s3_path,
-           sample_unique_id, sample_location, sample_date, sample_tissue,
-           sample_template, sample_library, sample_sequencer, sample_notes,
-           sample_memory, host_id, host_genome_name, job_queue, chunk_size):
+def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chunk_size):
     print("\nPreparing to uploading sample \"{}\" ...".format(sample_name))
 
     files = [File(r1)]
@@ -160,7 +156,7 @@ def upload(sample_name, project_name, headers, url, r1, r2,
         "samples": [
             {
                 "name": sample_name,
-                "project_name": project_name,
+                "project_id": project_id,
                 "input_files_attributes": [
                     {
                         "name": os.path.basename(f.path),
@@ -170,16 +166,12 @@ def upload(sample_name, project_name, headers, url, r1, r2,
                     }
                     for f in files
                 ],
+                "host_genome_name": host_genome_name,
                 "status": "created"
             }
         ],
         "client": version
     }
-
-    if host_id:
-        data["host_genome_id"] = int(host_id)
-    if host_genome_name:
-        data["host_genome_name"] = host_genome_name
 
     print(f"here's our data: {data}")
     resp = requests.post(
@@ -298,6 +290,25 @@ def get_user_metadata(base_url, headers, sample_names):
             resp = input("\nFix these errors and press Enter to upload again. Or enter a different "
                          "file name: ")
             metadata_file = resp or metadata_file
+
+
+def validate_project(base_url, headers, project_name):
+    print("Checking project name...")
+    all_projects = requests.get(base_url + "/projects.json", headers=headers).json()
+    names_to_ids = {}
+    for project in all_projects:
+        names_to_ids[project["name"]] = project["id"]
+
+    while project_name not in names_to_ids:
+        user_resp = input("\nProject does not exist. Press Enter to create. Or check a different project "
+                     "name: ")
+        if user_resp:
+            project_name = user_resp
+        else:
+            resp = requests.post(base_url + "/projects.json", data=json.dumps({"project": {"name": project_name}}), headers=headers)
+            resp = resp.json()
+            return resp["name"], resp["id"]
+    return project_name, names_to_ids[project_name]
 
 
 class Tqio(io.BufferedReader):
