@@ -128,7 +128,7 @@ def detect_samples(path):
     raise ValueError()
 
 
-def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chunk_size):
+def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chunk_size, metadata_file):
     print("\nPreparing to uploading sample \"{}\" ...".format(sample_name))
 
     files = [File(r1)]
@@ -152,6 +152,16 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
 
     # Get version of CLI from setuptools
     version = pkg_resources.require("idseq")[0].version
+
+    csv_data = {}
+    with open(metadata_file) as f:
+        for row in list(csv.DictReader(f)):
+            name = row.pop("sample_name")
+            csv_data[name] = row
+
+    print("CSV data:")
+    print(csv_data)
+
     data = {
         "samples": [
             {
@@ -170,6 +180,7 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
                 "status": "created"
             }
         ],
+        "metadata": csv_data,
         "client": version
     }
 
@@ -193,7 +204,8 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
         data = resp.json()
         print(data)
 
-        num_files = len(data['input_files'])
+        sample_data = data["samples"][0]
+        num_files = len(sample_data["input_files"])
         if num_files == 1:
             msg = "1 file to upload..."
         else:
@@ -201,7 +213,7 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
         print(msg)
         time.sleep(1)
 
-        for raw_input_file in data['input_files']:
+        for raw_input_file in sample_data['input_files']:
             presigned_urls = raw_input_file['presigned_url'].split(", ")
             input_parts = raw_input_file["parts"].split(", ")
             for i, file in enumerate(input_parts):
@@ -211,18 +223,21 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
                 if PART_SUFFIX in file:
                     subprocess.check_output("rm {}".format(file), shell=True)
 
+        sample_id = data["sample_ids"][0]
         update = {
             "sample": {
-                "id": data['id'],
+                "id": sample_id,
                 "name": sample_name,
                 "status": "uploaded"
             }
         }
 
-        resp = requests.post(
-            '{}/samples/{}.json'.format(url, data['id']),
+        resp = requests.put(
+            '{}/samples/{}.json'.format(url, sample_id),
             data=json.dumps(update),
             headers=headers)
+
+        print("this happened after the upload")
 
         if resp.status_code != 200:
             print("Sample was not successfully uploaded. Status code: {}".format(str(
@@ -284,7 +299,7 @@ def get_user_metadata(base_url, headers, sample_names):
 
         if len(errors) == 0:
             print("\nCSV validation successful!")
-            break
+            return metadata_file
         else:
             print("\n".join(errors))
             resp = input("\nFix these errors and press Enter to upload again. Or enter a different "

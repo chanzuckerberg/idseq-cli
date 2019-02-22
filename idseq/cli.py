@@ -206,13 +206,13 @@ def main():
         print("\nSamples and files to upload:")
         for sample, files in viewitems(samples2files):
             print_sample_files_info(sample, files)
-        uploader.get_user_metadata(args.url, headers, list(samples2files.keys()))
+        metadata_file = uploader.get_user_metadata(args.url, headers, list(samples2files.keys()))
         if not args.accept_all:
             uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):
             if len(files) < 2:
                 files.append(None)
-            upload_sample(sample, files[0], files[1], headers, args)
+            upload_sample(sample, files[0], files[1], headers, args, metadata_file)
         return
 
     # Single upload
@@ -222,10 +222,10 @@ def main():
         validate_file(args.r2, 'R2')
         input_files.append(args.r2)
     print_sample_files_info(args.sample_name, input_files)
-    uploader.get_user_metadata(args.url, headers, [args.sample_name])
+    metadata_file = uploader.get_user_metadata(args.url, headers, [args.sample_name])
     if not args.accept_all:
         uploader.get_user_agreement()
-    upload_sample(args.sample_name, args.r1, args.r2, headers, args)
+    upload_sample(args.sample_name, args.r1, args.r2, headers, args, metadata_file)
 
 
 def required_input(msg):
@@ -235,11 +235,11 @@ def required_input(msg):
     return resp
 
 
-def upload_sample(sample_name, file_0, file_1, headers, args):
+def upload_sample(sample_name, file_0, file_1, headers, args, metadata_file):
     try:
         uploader.upload(
             sample_name, args.project_id, headers, args.url, file_0, file_1,
-            args.host_genome_name, args.uploadchunksize
+            args.host_genome_name, args.uploadchunksize, metadata_file
         )
     except requests.exceptions.RequestException as e:
         sample_error_text(sample_name, e)
