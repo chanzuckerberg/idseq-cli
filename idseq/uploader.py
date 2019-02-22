@@ -153,6 +153,7 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
     # Get version of CLI from setuptools
     version = pkg_resources.require("idseq")[0].version
 
+    # Send metadata as sample_name => {metadata_key: value}
     csv_data = {}
     with open(metadata_file) as file_data:
         for row in list(csv.DictReader(file_data)):
@@ -183,18 +184,16 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
 
     resp = requests.post(
         url + '/samples/bulk_upload_with_metadata.json', data=json.dumps(data), headers=headers)
+    resp = resp.json()
 
-    if resp.status_code in range(200, 300):
+    if len(resp.get("errors", {})) == 0:
         print("Connected to the server.")
     else:
-        print('\nFailed. Error no: {}'.format(resp.status_code))
-        print("Error response from IDseq server {}".format(resp.text))
+        print("\nFailed. Error response from IDseq server: {}".format(resp["errors"]))
         return
 
     if source_type == 'local':
-        data = resp.json()
-
-        sample_data = data["samples"][0]
+        sample_data = resp["samples"][0]
         num_files = len(sample_data["input_files"])
         if num_files == 1:
             msg = "1 file to upload..."
@@ -213,7 +212,8 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
                 if PART_SUFFIX in file:
                     subprocess.check_output("rm {}".format(file), shell=True)
 
-        sample_id = data["sample_ids"][0]
+        # Mark as uploaded
+        sample_id = resp["sample_ids"][0]
         update = {
             "sample": {
                 "id": sample_id,
@@ -230,6 +230,7 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
         if resp.status_code != 200:
             print("Sample was not successfully uploaded. Status code: {}".format(str(
                 resp.status_code)))
+    print("All done!")
 
 
 def get_user_agreement():
@@ -285,14 +286,14 @@ def get_user_metadata(base_url, headers, sample_names):
         except (OSError, json.decoder.JSONDecodeError, requests.exceptions.RequestException) as err:
             errors = [str(err)]
 
-        if len(errors) == 0:
-            print("\nCSV validation successful!")
-            return metadata_file
-        else:
+        if len(errors) != 0:
             print("\n".join(errors))
             resp = input("\nFix these errors and press Enter to upload again. Or enter a different "
                          "file name: ")
             metadata_file = resp or metadata_file
+        else:
+            print("\nCSV validation successful!")
+            return metadata_file
 
 
 def validate_project(base_url, headers, project_name):
@@ -308,12 +309,14 @@ def validate_project(base_url, headers, project_name):
         if user_resp:
             project_name = user_resp
         else:
+            # Create the project
             resp = requests.post(
                 base_url + "/projects.json",
                 data=json.dumps({"project": {"name": project_name}}),
                 headers=headers
             )
             resp = resp.json()
+            print("Project created!")
             return resp["name"], resp["id"]
     return project_name, names_to_ids[project_name]
 

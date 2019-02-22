@@ -2,6 +2,7 @@ import argparse
 import re
 import requests
 import uploader
+import traceback
 
 from builtins import input
 from future.utils import viewitems
@@ -244,6 +245,7 @@ def upload_sample(sample_name, file_0, file_1, headers, args, metadata_file):
         sample_error_text(sample_name, e)
         network_err_text()
     except Exception as e:
+        traceback.print_exc()
         sample_error_text(sample_name, e)
 
 
