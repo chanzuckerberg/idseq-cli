@@ -5,7 +5,6 @@ import uploader
 
 from builtins import input
 from future.utils import viewitems
-import traceback
 
 
 def validate_file(path, name):
@@ -245,9 +244,6 @@ def upload_sample(sample_name, file_0, file_1, headers, args, metadata_file):
         sample_error_text(sample_name, e)
         network_err_text()
     except Exception as e:
-        print("exception caught")
-        print(e)
-        traceback.print_exc()
         sample_error_text(sample_name, e)
 
 

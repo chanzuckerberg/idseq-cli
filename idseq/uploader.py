@@ -159,9 +159,6 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
             name = row.pop("sample_name")
             csv_data[name] = row
 
-    print("CSV data:")
-    print(csv_data)
-
     data = {
         "samples": [
             {
@@ -184,7 +181,6 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
         "client": version
     }
 
-    print(f"here's our data: {data}")
     resp = requests.post(
         url + '/samples/bulk_upload_with_metadata.json', data=json.dumps(data), headers=headers)
 
@@ -192,17 +188,11 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
         print("Connected to the server.")
     else:
         print('\nFailed. Error no: {}'.format(resp.status_code))
-        print(resp.text)
-        print(resp.json())
-        for err_type, errors in viewitems(resp.json()):
-            print(
-                'Error response from IDseq server :: {0} :: {1}'.format(err_type,
-                                                                        errors))
+        print("Error response from IDseq server {}".format(resp.text))
         return
 
     if source_type == 'local':
         data = resp.json()
-        print(data)
 
         sample_data = data["samples"][0]
         num_files = len(sample_data["input_files"])
@@ -236,8 +226,6 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
             '{}/samples/{}.json'.format(url, sample_id),
             data=json.dumps(update),
             headers=headers)
-
-        print("this happened after the upload")
 
         if resp.status_code != 200:
             print("Sample was not successfully uploaded. Status code: {}".format(str(
@@ -315,12 +303,16 @@ def validate_project(base_url, headers, project_name):
         names_to_ids[project["name"]] = project["id"]
 
     while project_name not in names_to_ids:
-        user_resp = input("\nProject does not exist. Press Enter to create. Or check a different project "
-                     "name: ")
+        user_resp = input("\nProject does not exist. Press Enter to create. Or check a different "
+                          "project name: ")
         if user_resp:
             project_name = user_resp
         else:
-            resp = requests.post(base_url + "/projects.json", data=json.dumps({"project": {"name": project_name}}), headers=headers)
+            resp = requests.post(
+                base_url + "/projects.json",
+                data=json.dumps({"project": {"name": project_name}}),
+                headers=headers
+            )
             resp = resp.json()
             return resp["name"], resp["id"]
     return project_name, names_to_ids[project_name]
