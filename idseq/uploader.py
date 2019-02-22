@@ -287,7 +287,7 @@ def get_user_metadata(base_url, headers, sample_names):
             errors = [str(err)]
 
         if len(errors) != 0:
-            print("\n".join(errors))
+            print("\n" + "\n".join(errors))
             resp = input("\nFix these errors and press Enter to upload again. Or enter a different "
                          "file name: ")
             metadata_file = resp or metadata_file

@@ -1,8 +1,8 @@
 import argparse
 import re
 import requests
-import uploader
 import traceback
+from . import uploader
 
 from builtins import input
 from future.utils import viewitems
@@ -71,72 +71,13 @@ def main():
         type=str,
         help='read 2 file path (optional). could be a local file or s3 path')
     parser.add_argument(
-        '--preload',
-        metavar='file',
-        type=str,
-        help='s3 path for preloading the results for lazy run')
-    parser.add_argument(
         '-b',
         '--bulk',
         metavar='file',
         type=str,
         help='Input folder for bulk upload')
     parser.add_argument(
-        '--starindex',
-        metavar='file',
-        type=str,
-        help='s3 path for STAR index (tar.gz)')
-    parser.add_argument(
-        '--bowtie2index',
-        metavar='file',
-        type=str,
-        help='s3 path for bowtie2 index (tar.gz)')
-    parser.add_argument(
-        '--samplehost',
-        metavar='name',
-        type=str,
-        help='Name of the host the sample was taken from')
-    parser.add_argument(
-        '--samplelocation',
-        metavar='name',
-        type=str,
-        help='Location of sample collection')
-    parser.add_argument(
-        '--sampledate',
-        metavar='date',
-        type=str,
-        help='Date of sample collection')
-    parser.add_argument(
-        '--sampletissue', metavar='name', type=str, help='Tissue sampled')
-    parser.add_argument(
-        '--sampletemplate',
-        metavar='name',
-        type=str,
-        help='Nucleic acid type of assay template (DNA/RNA)')
-    parser.add_argument(
-        '--samplelibrary',
-        metavar='name',
-        type=str,
-        help='Library preparation method')
-    parser.add_argument(
-        '--samplesequencer',
-        metavar='name',
-        type=str,
-        help='Sequencing instrument')
-    parser.add_argument(
-        '--samplenotes',
-        metavar='name',
-        type=str,
-        help='Any additional notes about the sample')
-    parser.add_argument(
-        '--samplememory',
-        metavar='value',
-        type=int,
-        help='Memory requirement in MB')
-    parser.add_argument(
         '--host-id', metavar='value', type=int, help='Host Genome Id')
-    parser.add_argument(
-        '--job-queue', metavar='name', type=str, help='Job Queue')
     parser.add_argument(
         '--uploadchunksize',
         metavar='value',
