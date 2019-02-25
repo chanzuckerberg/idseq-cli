@@ -139,7 +139,7 @@ def main():
         for sample, files in viewitems(samples2files):
             if len(files) < 2:
                 files.append(None)
-            upload_sample(sample, files[0], files[1], headers, args, csv_metadata)
+            upload_sample(sample, files[0], files[1], headers, args, csv_metadata[sample])
         return
 
     # Single upload
@@ -152,7 +152,7 @@ def main():
     csv_metadata = uploader.get_user_metadata(args.url, headers, [args.sample_name], args.project_id)
     if not args.accept_all:
         uploader.get_user_agreement()
-    upload_sample(args.sample_name, args.r1, args.r2, headers, args, csv_metadata)
+    upload_sample(args.sample_name, args.r1, args.r2, headers, args, csv_metadata[args.sample_name])
 
 
 def required_input(msg):
@@ -166,7 +166,7 @@ def upload_sample(sample_name, file_0, file_1, headers, args, csv_metadata):
     try:
         uploader.upload(
             sample_name, args.project_id, headers, args.url, file_0, file_1,
-            args.uploadchunksize, csv_metadata[sample_name]
+            args.uploadchunksize, csv_metadata
         )
     except requests.exceptions.RequestException as e:
         sample_error_text(sample_name, e)
