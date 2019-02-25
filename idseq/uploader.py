@@ -128,7 +128,7 @@ def detect_samples(path):
     raise ValueError()
 
 
-def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, metadata_file):
+def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metadata):
     print("\nPreparing to uploading sample \"{}\" ...".format(sample_name))
 
     files = [File(r1)]
@@ -153,14 +153,7 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, metadata_f
     # Get version of CLI from setuptools
     version = pkg_resources.require("idseq")[0].version
 
-    # Send metadata as sample_name => {metadata_key: value}
-    csv_data = {}
-    with open(metadata_file) as file_data:
-        for row in list(csv.DictReader(file_data)):
-            name = row.pop("sample_name")
-            csv_data[name] = row
-
-    host_genome_name = get_match_in_dict(["host_genome", "Host genome", "Host Genome", "host genome"], csv_data[sample_name])
+    host_genome_name = get_match_in_dict(["host_genome", "Host genome", "Host Genome", "host genome"], csv_metadata[sample_name])
 
     data = {
         "samples": [
@@ -180,7 +173,7 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, metadata_f
                 "status": "created"
             }
         ],
-        "metadata": csv_data,
+        "metadata": csv_metadata,
         "client": version
     }
 
@@ -296,7 +289,14 @@ def get_user_metadata(base_url, headers, sample_names, project_id):
             metadata_file = resp or metadata_file
         else:
             print("\nCSV validation successful!")
-            return metadata_file
+
+            # Send metadata as { sample_name => {metadata_key: value} }
+            csv_data = {}
+            with open(metadata_file) as file_data:
+                for row in list(csv.DictReader(file_data)):
+                    name = row.pop("sample_name")
+                    csv_data[name] = row
+            return csv_data
 
 
 def validate_project(base_url, headers, project_name):
