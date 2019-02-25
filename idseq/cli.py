@@ -166,7 +166,7 @@ def upload_sample(sample_name, file_0, file_1, headers, args, csv_metadata):
     try:
         uploader.upload(
             sample_name, args.project_id, headers, args.url, file_0, file_1,
-            args.uploadchunksize, csv_metadata
+            args.uploadchunksize, csv_metadata[sample_name]
         )
     except requests.exceptions.RequestException as e:
         sample_error_text(sample_name, e)

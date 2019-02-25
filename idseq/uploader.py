@@ -153,7 +153,7 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
     # Get version of CLI from setuptools
     version = pkg_resources.require("idseq")[0].version
 
-    host_genome_name = get_match_in_dict(["host_genome", "Host genome", "Host Genome", "host genome"], csv_metadata[sample_name])
+    host_genome_name = get_match_in_dict(["host_genome", "Host genome", "Host Genome", "host genome"], csv_metadata)
 
     data = {
         "samples": [
@@ -173,7 +173,7 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
                 "status": "created"
             }
         ],
-        "metadata": csv_metadata,
+        "metadata": {sample_name: csv_metadata},
         "client": version
     }
 
