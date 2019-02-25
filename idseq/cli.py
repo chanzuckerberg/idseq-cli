@@ -56,11 +56,6 @@ def main():
         type=str,
         help='Your authentication token')
     parser.add_argument(
-        '--host-genome-name',
-        metavar='name',
-        type=str,
-        help='Host Genome Name')
-    parser.add_argument(
         '--r1',
         metavar='file',
         type=str,
@@ -76,8 +71,6 @@ def main():
         metavar='file',
         type=str,
         help='Input folder for bulk upload')
-    parser.add_argument(
-        '--host-id', metavar='value', type=int, help='Host Genome Id')
     parser.add_argument(
         '--uploadchunksize',
         metavar='value',
@@ -120,12 +113,6 @@ def main():
                         "press Enter to skip): ")
                     if r2 != '':
                         args.r2 = r2
-    host_genomes = ["Human", "Mosquito", "Tick", "Mouse", "Cat", "Pig", "ERCC only"]
-    host_genome_display = "'" + "' / '".join(host_genomes) + "'"
-    while args.host_genome_name not in host_genomes:
-        args.host_genome_name = required_input(
-            "\nEnter the host genome name (to be filtered out):\nOptions: " +
-            host_genome_display + ": ").strip("'")
 
     # Headers for server requests
     headers = {
@@ -138,7 +125,6 @@ def main():
     args.project, args.project_id = uploader.validate_project(args.url, headers, args.project)
 
     print("\n{:20}{}".format("PROJECT:", args.project))
-    print("{:20}{}".format("HOST GENOME:", args.host_genome_name))
 
     # Bulk upload
     if args.bulk:
@@ -147,7 +133,7 @@ def main():
         print("\nSamples and files to upload:")
         for sample, files in viewitems(samples2files):
             print_sample_files_info(sample, files)
-        metadata_file = uploader.get_user_metadata(args.url, headers, list(samples2files.keys()))
+        metadata_file = uploader.get_user_metadata(args.url, headers, list(samples2files.keys()), args.project_id)
         if not args.accept_all:
             uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):
@@ -163,7 +149,7 @@ def main():
         validate_file(args.r2, 'R2')
         input_files.append(args.r2)
     print_sample_files_info(args.sample_name, input_files)
-    metadata_file = uploader.get_user_metadata(args.url, headers, [args.sample_name])
+    metadata_file = uploader.get_user_metadata(args.url, headers, [args.sample_name], args.project_id)
     if not args.accept_all:
         uploader.get_user_agreement()
     upload_sample(args.sample_name, args.r1, args.r2, headers, args, metadata_file)
@@ -180,7 +166,7 @@ def upload_sample(sample_name, file_0, file_1, headers, args, metadata_file):
     try:
         uploader.upload(
             sample_name, args.project_id, headers, args.url, file_0, file_1,
-            args.host_genome_name, args.uploadchunksize, metadata_file
+            args.uploadchunksize, metadata_file
         )
     except requests.exceptions.RequestException as e:
         sample_error_text(sample_name, e)
@@ -191,7 +177,7 @@ def upload_sample(sample_name, file_0, file_1, headers, args, metadata_file):
 
 
 def print_sample_files_info(sample, files):
-    print("\n{:20}{}".format("SAMPLE NAME:", sample))
+    print("{:20}{}".format("SAMPLE NAME:", sample))
     print("{:20}{}".format("INPUT FILES:", " ".join(files)))
 
 

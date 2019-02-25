@@ -128,7 +128,7 @@ def detect_samples(path):
     raise ValueError()
 
 
-def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chunk_size, metadata_file):
+def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, metadata_file):
     print("\nPreparing to uploading sample \"{}\" ...".format(sample_name))
 
     files = [File(r1)]
@@ -159,6 +159,8 @@ def upload(sample_name, project_id, headers, url, r1, r2, host_genome_name, chun
         for row in list(csv.DictReader(file_data)):
             name = row.pop("sample_name")
             csv_data[name] = row
+
+    host_genome_name = get_match_in_dict(["host_genome", "Host genome", "Host Genome", "host genome"], csv_data[sample_name])
 
     data = {
         "samples": [
@@ -251,10 +253,11 @@ def get_user_agreement():
     prompt(msg)
 
 
-def get_user_metadata(base_url, headers, sample_names):
+def get_user_metadata(base_url, headers, sample_names, project_id):
     print(
         "\n\nPlease provide some metadata for your sample(s):"
         "\n\nInstructions: https://idseq.net/metadata/instructions"
+        "\nHost genomes: Human, Mosquito, Tick, Mouse, Cat, Pig, ERCC only"
         "\nMetadata dictionary: https://idseq.net/metadata/dictionary"
         "\nMetadata CSV template: https://idseq.net/metadata/metadata_template_csv"
     )
@@ -271,7 +274,7 @@ def get_user_metadata(base_url, headers, sample_names):
             data = {
                 "metadata": {"headers": csv_data[0], "rows": csv_data[1:]},
                 "samples": [
-                    {"name": name} for name in sample_names
+                    {"name": name, "project_id": project_id} for name in sample_names
                 ],
             }
             resp = requests.post(
@@ -319,6 +322,12 @@ def validate_project(base_url, headers, project_name):
             print("Project created!")
             return resp["name"], resp["id"]
     return project_name, names_to_ids[project_name]
+
+
+def get_match_in_dict(keys, dictionary):
+    for k in keys:
+        if k in dictionary:
+            return dictionary[k]
 
 
 class Tqio(io.BufferedReader):
