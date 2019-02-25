@@ -153,7 +153,7 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
     # Get version of CLI from setuptools
     version = pkg_resources.require("idseq")[0].version
 
-    host_genome_name = get_match_in_dict(["host_genome", "Host genome", "Host Genome", "host genome"], csv_metadata)
+    host_genome_name = pop_match_in_dict(["host_genome", "Host Genome"], csv_metadata)
 
     data = {
         "samples": [
@@ -248,7 +248,7 @@ def get_user_agreement():
 
 def get_user_metadata(base_url, headers, sample_names, project_id):
     print(
-        "\n\nPlease provide some metadata for your sample(s):"
+        "\nPlease provide some metadata for your sample(s):"
         "\n\nInstructions: https://idseq.net/metadata/instructions"
         "\nHost genomes: Human, Mosquito, Tick, Mouse, Cat, Pig, ERCC only"
         "\nMetadata dictionary: https://idseq.net/metadata/dictionary"
@@ -283,7 +283,7 @@ def get_user_metadata(base_url, headers, sample_names, project_id):
             errors = [str(err)]
 
         if len(errors) != 0:
-            print("\n" + "\n".join(errors))
+            print("\n======= Metadata Errors =======\n" + "\n".join(errors))
             resp = input("\nFix these errors and press Enter to upload again. Or enter a different "
                          "file name: ")
             metadata_file = resp or metadata_file
@@ -294,7 +294,7 @@ def get_user_metadata(base_url, headers, sample_names, project_id):
             csv_data = {}
             with open(metadata_file) as file_data:
                 for row in list(csv.DictReader(file_data)):
-                    name = row.pop("sample_name")
+                    name = pop_match_in_dict(["sample_name", "Sample Name"], row)
                     csv_data[name] = row
             return csv_data
 
@@ -324,10 +324,10 @@ def validate_project(base_url, headers, project_name):
     return project_name, names_to_ids[project_name]
 
 
-def get_match_in_dict(keys, dictionary):
+def pop_match_in_dict(keys, dictionary):
     for k in keys:
         if k in dictionary:
-            return dictionary[k]
+            return dictionary.pop(k)
 
 
 class Tqio(io.BufferedReader):
