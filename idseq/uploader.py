@@ -250,7 +250,7 @@ def get_user_metadata(base_url, headers, sample_names, project_id):
     print(
         "\nPlease provide some metadata for your sample(s):"
         "\n\nInstructions: https://idseq.net/metadata/instructions"
-        "\nHost genomes: Human, Mosquito, Tick, Mouse, Cat, Pig, ERCC only"
+        "\nHost genomes: C.elegans, Cat, ERCC only, Human, Mosquito, Mouse, Pig, Tick"
         "\nMetadata dictionary: https://idseq.net/metadata/dictionary"
         "\nMetadata CSV template: https://idseq.net/metadata/metadata_template_csv"
     )
@@ -275,17 +275,14 @@ def get_user_metadata(base_url, headers, sample_names, project_id):
                 data=json.dumps(data),
                 headers=headers,
             )
-
-            # Handle errors
-            resp = json.loads(resp.text)
-            errors = resp.get("issues", {}).get("errors", {})
+            errors = display_metadata_errors(resp)
         except (OSError, json.decoder.JSONDecodeError, requests.exceptions.RequestException) as err:
             errors = [str(err)]
+            print(errors)
 
         if len(errors) != 0:
-            print("\n======= Metadata Errors =======\n" + "\n".join(errors))
-            resp = input("\nFix these errors and press Enter to upload again. Or enter a different "
-                         "file name: ")
+            print("\n====================")
+            resp = input("\nPlease fix the errors and press Enter to upload again. Or enter a different file name: ")
             metadata_file = resp or metadata_file
         else:
             print("\nCSV validation successful!")
@@ -297,6 +294,24 @@ def get_user_metadata(base_url, headers, sample_names, project_id):
                     name = pop_match_in_dict(["sample_name", "Sample Name"], row)
                     csv_data[name] = row
             return csv_data
+
+
+# Display issues with the submitted metadata CSV based on the server response
+def display_metadata_errors(resp):
+    resp = json.loads(resp.text)
+    issues = resp.get("issues", {})
+
+    # Show a section for errors and warnings
+    for issue_type in ["errors", "warnings"]:
+        group = issues.get(issue_type, {})
+        if len(group) != 0:
+            print("\n===== {} =====".format(issue_type.capitalize()))
+            for issue in group:
+                print()
+                issue.pop("isGroup", None)  # Ignore field
+                for msg in issue.values():
+                    print(msg)
+    return issues.get("errors", {})
 
 
 def validate_project(base_url, headers, project_name):

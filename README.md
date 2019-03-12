@@ -43,12 +43,17 @@ For macOS users: We recommend trying the Homebrew package manager to install `aw
 ### (3) Upload a single sample:
 
 `idseq -e YOUR_EMAIL -t YOUR_TOKEN -p'Your Project Name' -s 'Your Sample Name' \
---r1 your_sample_R1.fastq.gz --r2 your_sample_R2.fastq.gz --host-genome-name 'Human'`
+--r1 your_sample_R1.fastq.gz --r2 your_sample_R2.fastq.gz`
 
 - Replace YOUR_EMAIL with your IDseq email and YOUR_TOKEN with your upload token.
 - Supported file types: .fastq/.fq/.fasta/.fa or .fastq.gz/.fq.gz/.fasta.gz/.fa.gz
 
-- Supported host genome values: 'Human', 'Mosquito', 'Tick', 'Mouse', 'Cat', 'Pig', 'ERCC only'
+- You will be prompted to upload metadata in a CSV file with your samples. This is also where you will specify the Host Genome.
+  - Instructions: https://idseq.net/metadata/instructions
+  - Metadata dictionary: https://idseq.net/metadata/dictionary
+  - Metadata CSV template: https://idseq.net/metadata/metadata_template_csv
+
+- Supported host genome values: C.elegans, Cat, ERCC only, Human, Mosquito, Mouse, Pig, Tick
 
 - Your authentication token for uploading is the token after -t. Keep this private like a password!
 
@@ -65,9 +70,9 @@ Having trouble? Just run idseq without any parameters and the program will guide
 ### (Optional) Upload samples in bulk mode by specifying a folder:
 
 `idseq -e YOUR_EMAIL -t YOUR_TOKEN -p'Your Project Name' \
---bulk /path/to/your/folder --host-genome-name 'Human'`
+--bulk /path/to/your/folder`
 
 Edit the command in this text box and copy-and-paste:
 
-`idseq -e YOUR_EMAIL -t YOUR_TOKEN -p 'Your Project Name' --bulk . --host-genome-name 'Human'`
+`idseq -e YOUR_EMAIL -t YOUR_TOKEN -p 'Your Project Name' --bulk .`
 - The '.' refers to the current folder in your terminal. The program will try to auto-detect files in the folder.
