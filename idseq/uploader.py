@@ -9,6 +9,7 @@ import stat
 import subprocess
 import sys
 import time
+import csv
 
 from builtins import input
 from future.utils import viewitems
@@ -127,11 +128,7 @@ def detect_samples(path):
     raise ValueError()
 
 
-def upload(sample_name, project_name, email, token, url, r1, r2,
-           preload_s3_path, starindex_s3_path, bowtie2index_s3_path,
-           sample_unique_id, sample_location, sample_date, sample_tissue,
-           sample_template, sample_library, sample_sequencer, sample_notes,
-           sample_memory, host_id, host_genome_name, job_queue, chunk_size):
+def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metadata):
     print("\nPreparing to uploading sample \"{}\" ...".format(sample_name))
 
     files = [File(r1)]
@@ -155,84 +152,44 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
 
     # Get version of CLI from setuptools
     version = pkg_resources.require("idseq")[0].version
+
+    host_genome_name = pop_match_in_dict(["host_genome", "Host Genome"], csv_metadata)
+
     data = {
-        "sample": {
-            "name":
-                sample_name,
-            "project_name":
-                project_name,
-            "input_files_attributes": [{
-                "name":
-                    os.path.basename(f.path),
-                "source":
-                    f.path,
-                "source_type":
-                    f.source_type(),
-                "parts":
-                    ", ".join(f.parts(max_part_size)),
-            } for f in files],
-            "status":
-                "created",
-            "client":
-                version
-        }
-    }
-
-    if preload_s3_path:
-        data["sample"]["s3_preload_result_path"] = preload_s3_path
-    if starindex_s3_path:
-        data["sample"]["s3_star_index_path"] = starindex_s3_path
-    if bowtie2index_s3_path:
-        data["sample"]["s3_bowtie2_index_path"] = bowtie2index_s3_path
-    if sample_unique_id:
-        data["sample"]["sample_unique_id"] = sample_unique_id
-    if sample_location:
-        data["sample"]["sample_location"] = sample_location
-    if sample_date:
-        data["sample"]["sample_date"] = sample_date
-    if sample_tissue:
-        data["sample"]["sample_tissue"] = sample_tissue
-    if sample_template:
-        data["sample"]["sample_template"] = sample_template
-    if sample_library:
-        data["sample"]["sample_library"] = sample_library
-    if sample_sequencer:
-        data["sample"]["sample_sequencer"] = sample_sequencer
-    if sample_notes:
-        data["sample"]["sample_notes"] = sample_notes
-    if sample_memory:
-        data["sample"]["sample_memory"] = int(sample_memory)
-    if host_id:
-        data["sample"]["host_genome_id"] = int(host_id)
-    if host_genome_name:
-        data["sample"]["host_genome_name"] = host_genome_name
-    if job_queue:
-        data["sample"]["job_queue"] = job_queue
-
-    headers = {
-        'Accept': 'application/json',
-        'Content-type': 'application/json',
-        'X-User-Email': email,
-        'X-User-Token': token
+        "samples": [
+            {
+                "name": sample_name,
+                "project_id": project_id,
+                "input_files_attributes": [
+                    {
+                        "name": os.path.basename(f.path),
+                        "source": f.path,
+                        "source_type": f.source_type(),
+                        "parts": ", ".join(f.parts(max_part_size)),
+                    }
+                    for f in files
+                ],
+                "host_genome_name": host_genome_name,
+                "status": "created"
+            }
+        ],
+        "metadata": {sample_name: csv_metadata},
+        "client": version
     }
 
     resp = requests.post(
-        url + '/samples.json', data=json.dumps(data), headers=headers)
+        url + '/samples/bulk_upload_with_metadata.json', data=json.dumps(data), headers=headers)
+    resp = resp.json()
 
-    if resp.status_code == 201:
+    if len(resp.get("errors", {})) == 0:
         print("Connected to the server.")
     else:
-        print('\nFailed. Error no: {}'.format(resp.status_code))
-        for err_type, errors in viewitems(resp.json()):
-            print(
-                'Error response from IDseq server :: {0} :: {1}'.format(err_type,
-                                                                        errors))
+        print("\nFailed. Error response from IDseq server: {}".format(resp["errors"]))
         return
 
     if source_type == 'local':
-        data = resp.json()
-
-        num_files = len(data['input_files'])
+        sample_data = resp["samples"][0]
+        num_files = len(sample_data["input_files"])
         if num_files == 1:
             msg = "1 file to upload..."
         else:
@@ -240,7 +197,7 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
         print(msg)
         time.sleep(1)
 
-        for raw_input_file in data['input_files']:
+        for raw_input_file in sample_data['input_files']:
             presigned_urls = raw_input_file['presigned_url'].split(", ")
             input_parts = raw_input_file["parts"].split(", ")
             for i, file in enumerate(input_parts):
@@ -250,22 +207,25 @@ def upload(sample_name, project_name, email, token, url, r1, r2,
                 if PART_SUFFIX in file:
                     subprocess.check_output("rm {}".format(file), shell=True)
 
+        # Mark as uploaded
+        sample_id = resp["sample_ids"][0]
         update = {
             "sample": {
-                "id": data['id'],
+                "id": sample_id,
                 "name": sample_name,
                 "status": "uploaded"
             }
         }
 
         resp = requests.put(
-            '{}/samples/{}.json'.format(url, data['id']),
+            '{}/samples/{}.json'.format(url, sample_id),
             data=json.dumps(update),
             headers=headers)
 
         if resp.status_code != 200:
             print("Sample was not successfully uploaded. Status code: {}".format(str(
                 resp.status_code)))
+    print("All done!")
 
 
 def get_user_agreement():
@@ -284,6 +244,105 @@ def get_user_agreement():
           "Privacy Notice (https://assets.idseq.net/Privacy.pdf).\nProceed (y/N)? y for " \
           "yes or N to cancel: "
     prompt(msg)
+
+
+def get_user_metadata(base_url, headers, sample_names, project_id):
+    print(
+        "\nPlease provide some metadata for your sample(s):"
+        "\n\nInstructions: https://idseq.net/metadata/instructions"
+        "\nHost genomes: C.elegans, Cat, ERCC only, Human, Mosquito, Mouse, Pig, Tick"
+        "\nMetadata dictionary: https://idseq.net/metadata/dictionary"
+        "\nMetadata CSV template: https://idseq.net/metadata/metadata_template_csv"
+    )
+    metadata_file = input("\nEnter the metadata file: ")
+
+    # Loop for metadata CSV validation
+    errors = [-1]
+    while len(errors) != 0:
+        try:
+            with open(metadata_file) as f:
+                csv_data = list(csv.reader(f))
+
+            # Format data for the validation endpoint
+            data = {
+                "metadata": {"headers": csv_data[0], "rows": csv_data[1:]},
+                "samples": [
+                    {"name": name, "project_id": project_id} for name in sample_names
+                ],
+            }
+            resp = requests.post(
+                base_url + "/metadata/validate_csv_for_new_samples.json",
+                data=json.dumps(data),
+                headers=headers,
+            )
+            errors = display_metadata_errors(resp)
+        except (OSError, json.decoder.JSONDecodeError, requests.exceptions.RequestException) as err:
+            errors = [str(err)]
+            print(errors)
+
+        if len(errors) != 0:
+            print("\n====================")
+            resp = input("\nPlease fix the errors and press Enter to upload again. Or enter a different file name: ")
+            metadata_file = resp or metadata_file
+        else:
+            print("\nCSV validation successful!")
+
+            # Send metadata as { sample_name => {metadata_key: value} }
+            csv_data = {}
+            with open(metadata_file) as file_data:
+                for row in list(csv.DictReader(file_data)):
+                    name = pop_match_in_dict(["sample_name", "Sample Name"], row)
+                    csv_data[name] = row
+            return csv_data
+
+
+# Display issues with the submitted metadata CSV based on the server response
+def display_metadata_errors(resp):
+    resp = json.loads(resp.text)
+    issues = resp.get("issues", {})
+
+    # Show a section for errors and warnings
+    for issue_type in ["errors", "warnings"]:
+        group = issues.get(issue_type, {})
+        if len(group) != 0:
+            print("\n===== {} =====".format(issue_type.capitalize()))
+            for issue in group:
+                print()
+                issue.pop("isGroup", None)  # Ignore field
+                for msg in issue.values():
+                    print(msg)
+    return issues.get("errors", {})
+
+
+def validate_project(base_url, headers, project_name):
+    print("Checking project name...")
+    all_projects = requests.get(base_url + "/projects.json", headers=headers).json()
+    names_to_ids = {}
+    for project in all_projects:
+        names_to_ids[project["name"]] = project["id"]
+
+    while project_name not in names_to_ids:
+        user_resp = input("\nProject does not exist. Press Enter to create. Or check a different "
+                          "project name: ")
+        if user_resp:
+            project_name = user_resp
+        else:
+            # Create the project
+            resp = requests.post(
+                base_url + "/projects.json",
+                data=json.dumps({"project": {"name": project_name}}),
+                headers=headers
+            )
+            resp = resp.json()
+            print("Project created!")
+            return resp["name"], resp["id"]
+    return project_name, names_to_ids[project_name]
+
+
+def pop_match_in_dict(keys, dictionary):
+    for k in keys:
+        if k in dictionary:
+            return dictionary.pop(k)
 
 
 class Tqio(io.BufferedReader):
