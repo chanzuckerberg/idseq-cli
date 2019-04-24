@@ -276,7 +276,7 @@ def get_user_metadata(base_url, headers, sample_names, project_id):
                 headers=headers,
             )
             errors = display_metadata_errors(resp)
-        except (OSError, json.decoder.JSONDecodeError, requests.exceptions.RequestException) as err:
+        except (OSError, ValueError, requests.exceptions.RequestException) as err:
             errors = [str(err)]
             print(errors)
 
@@ -307,10 +307,14 @@ def display_metadata_errors(resp):
         if len(group) != 0:
             print("\n===== {} =====".format(issue_type.capitalize()))
             for issue in group:
-                print()
-                issue.pop("isGroup", None)  # Ignore field
-                for msg in issue.values():
-                    print(msg)
+                # TODO: Backend may return str or issue groups. Can consolidate.
+                if type(issue) == str:  # Won't work for unicode
+                    print(issue)
+                else:
+                    print()
+                    issue.pop("isGroup", None)  # Ignore field
+                    for msg in issue.values():
+                        print(msg)
     return issues.get("errors", {})
 
 
