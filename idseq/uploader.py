@@ -260,8 +260,14 @@ def get_user_metadata(base_url, headers, sample_names, project_id):
     errors = [-1]
     while len(errors) != 0:
         try:
-            with open(metadata_file) as f:
-                csv_data = list(csv.reader(f))
+            try:
+                with open(metadata_file, 'r', encoding='utf-8') as f:
+                    csv_data = list(csv.reader(f))
+            # If a Unicode error is thrown, it's possible that the user has generated
+            # a CSV from Excel that uses latin-1 encoding. Try alternate encoding.
+            except UnicodeDecodeError:
+                with open(metadata_file, 'r', encoding='latin-1') as f:
+                    csv_data = list(csv.reader(f))
 
             # Format data for the validation endpoint
             data = {
