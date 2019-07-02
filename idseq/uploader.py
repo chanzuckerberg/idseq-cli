@@ -203,7 +203,11 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
             for i, file in enumerate(input_parts):
                 presigned_url = presigned_urls[i]
                 with Tqio(file, i, num_files) as f:
-                    requests.put(presigned_url, data=f)
+                    resp_put = requests.put(presigned_url, data=f)
+                    if resp_put.status_code != 200:
+                        print("Sample was not successfully uploaded. Status code: {}, Input file: {}, Sample name: {}".format(
+                            str(sample_name), str(resp_put.status_code), str(file)))
+                        return
                 if PART_SUFFIX in file:
                     subprocess.check_output("rm {}".format(file), shell=True)
 
@@ -223,8 +227,8 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
             headers=headers)
 
         if resp.status_code != 200:
-            print("Sample was not successfully uploaded. Status code: {}".format(str(
-                resp.status_code)))
+            print("Sample was not successfully uploaded. Status code: {}, Sample name: {}".format(
+                str(resp.status_code), str(sample_name)))
     print("All done!")
 
 
