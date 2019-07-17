@@ -248,8 +248,8 @@ def get_user_agreement():
     msg = "\nI agree that the data I am uploading to IDseq has been lawfully " \
           "collected and that I have all the necessary consents, permissions, " \
           "and authorizations needed to collect, share, and export data to " \
-          "IDseq as outlined in the Terms (https://assets.idseq.net/Terms.pdf) and Data " \
-          "Privacy Notice (https://assets.idseq.net/Privacy.pdf).\nProceed (y/N)? y for " \
+          "IDseq as outlined in the Terms (https://idseq.net/terms) and Data " \
+          "Privacy Notice (https://idseq.net/privacy).\nProceed (y/N)? y for " \
           "yes or N to cancel: "
     prompt(msg)
 
