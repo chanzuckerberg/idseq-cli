@@ -129,7 +129,7 @@ def detect_samples(path):
 
 
 def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metadata):
-    print("\nPreparing to uploading sample \"{}\" ...".format(sample_name))
+    print("\nPreparing to upload sample \"{}\" ...".format(sample_name))
 
     files = [File(r1)]
     if r2:
@@ -253,28 +253,37 @@ def get_user_agreement():
           "yes or N to cancel: "
     prompt(msg)
 
-
-def get_user_metadata(base_url, headers, sample_names, project_id):
+def print_metadata_instructions():
     print(
-        "\nPlease provide some metadata for your sample(s):"
-        "\n\nInstructions: https://idseq.net/metadata/instructions"
+        "\nInstructions: https://idseq.net/metadata/instructions"
         "\nHost genomes: C.elegans, Cat, ERCC only, Human, Mosquito, Mouse, Pig, Tick"
         "\nMetadata dictionary: https://idseq.net/metadata/dictionary"
         "\nMetadata CSV template: https://idseq.net/metadata/metadata_template_csv"
     )
-    metadata_file = input("\nEnter the metadata file: ")
+
+def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file=None):
+
+    instructions_printed = False
+
+    if not metadata_file:
+        print("\nPlease provide some metadata for your sample(s):")
+        print_metadata_instructions()
+        instructions_printed = True
+        metadata_file = input("\nEnter the metadata file: ")
+    else:
+        print("{:20}{}".format("Metadata file:", metadata_file))
 
     # Loop for metadata CSV validation
     errors = [-1]
     while len(errors) != 0:
         try:
             try:
-                with open(metadata_file, 'r', encoding='utf-8') as f:
+                with io.open(metadata_file, 'r', encoding='utf-8') as f:
                     csv_data = list(csv.reader(f))
             # If a Unicode error is thrown, it's possible that the user has generated
             # a CSV from Excel that uses latin-1 encoding. Try alternate encoding.
             except UnicodeDecodeError:
-                with open(metadata_file, 'r', encoding='latin-1') as f:
+                with io.open(metadata_file, 'r', encoding='latin-1') as f:
                     csv_data = list(csv.reader(f))
 
             # Format data for the validation endpoint
@@ -294,8 +303,12 @@ def get_user_metadata(base_url, headers, sample_names, project_id):
             errors = [str(err)]
             print(errors)
 
+
         if len(errors) != 0:
             print("\n====================")
+            if not instructions_printed:
+                print_metadata_instructions()
+                instructions_printed = True
             resp = input("\nPlease fix the errors and press Enter to upload again. Or enter a different file name: ")
             metadata_file = resp or metadata_file
         else:
@@ -307,7 +320,7 @@ def get_user_metadata(base_url, headers, sample_names, project_id):
                 for row in list(csv.DictReader(file_data)):
                     name = pop_match_in_dict(["sample_name", "Sample Name"], row)
                     csv_data[name] = row
-            return csv_data
+            return csv_data, metadata_file
 
 
 # Display issues with the submitted metadata CSV based on the server response
@@ -336,6 +349,7 @@ def validate_project(base_url, headers, project_name):
     print("Checking project name...")
     all_projects = requests.get(base_url + "/projects.json", headers=headers).json()
     names_to_ids = {}
+
     for project in all_projects:
         names_to_ids[project["name"]] = project["id"]
 
@@ -354,6 +368,7 @@ def validate_project(base_url, headers, project_name):
             resp = resp.json()
             print("Project created!")
             return resp["name"], resp["id"]
+
     return project_name, names_to_ids[project_name]
 
 

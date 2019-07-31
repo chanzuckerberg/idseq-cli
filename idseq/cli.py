@@ -35,14 +35,20 @@ def main():
         '--sample-name',
         metavar='name',
         type=str,
-        help='Sample name. It should be unique within a project')
+        help='Sample name. It should be unique within a project. Ignored for bulk uploads.')
+    parser.add_argument(
+        '-m',
+        '--metadata',
+        metavar='file',
+        type=str,
+        help='Metadata local file path.')
     parser.add_argument(
         '-u',
         '--url',
         metavar='url',
         type=str,
         default='https://idseq.net',
-        help='idseq website url: i.e. https://idseq.net by default')
+        help='IDseq website url: i.e. https://idseq.net by default')
     parser.add_argument(
         '-e',
         '--email',
@@ -59,12 +65,12 @@ def main():
         '--r1',
         metavar='file',
         type=str,
-        help='read 1 file path. could be a local file or s3 path')
+        help='Read 1 file path. Could be a local file or s3 path')
     parser.add_argument(
         '--r2',
         metavar='file',
         type=str,
-        help='read 2 file path (optional). could be a local file or s3 path')
+        help='Read 2 file path (optional). Could be a local file or s3 path')
     parser.add_argument(
         '-b',
         '--bulk',
@@ -133,7 +139,7 @@ def main():
         print("\nSamples and files to upload:")
         for sample, files in viewitems(samples2files):
             print_sample_files_info(sample, files)
-        csv_metadata = uploader.get_user_metadata(args.url, headers, list(samples2files.keys()), args.project_id)
+        csv_metadata, metadata_file = uploader.get_user_metadata(args.url, headers, list(samples2files.keys()), args.project_id, args.metadata)
         if not args.accept_all:
             uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):
@@ -177,8 +183,8 @@ def upload_sample(sample_name, file_0, file_1, headers, args, csv_metadata):
 
 
 def print_sample_files_info(sample, files):
-    print("{:20}{}".format("SAMPLE NAME:", sample))
-    print("{:20}{}".format("INPUT FILES:", " ".join(files)))
+    print("{:20}{}".format("Sample name:", sample))
+    print("{:20}{}".format("Input files:", " ".join(files)))
 
 
 def sample_error_text(sample, err):
