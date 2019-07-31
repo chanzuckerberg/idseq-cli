@@ -303,7 +303,6 @@ def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file
             errors = [str(err)]
             print(errors)
 
-
         if len(errors) != 0:
             print("\n====================")
             if not instructions_printed:

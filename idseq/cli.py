@@ -139,7 +139,8 @@ def main():
         print("\nSamples and files to upload:")
         for sample, files in viewitems(samples2files):
             print_sample_files_info(sample, files)
-        csv_metadata, metadata_file = uploader.get_user_metadata(args.url, headers, list(samples2files.keys()), args.project_id, args.metadata)
+        csv_metadata, metadata_file = uploader.get_user_metadata(
+            args.url, headers, list(samples2files.keys()), args.project_id, args.metadata)
         if not args.accept_all:
             uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):
