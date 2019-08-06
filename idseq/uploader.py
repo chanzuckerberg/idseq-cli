@@ -256,7 +256,6 @@ def get_user_agreement():
 def print_metadata_instructions():
     print(
         "\nInstructions: https://idseq.net/metadata/instructions"
-        "\nHost genomes: C.elegans, Cat, ERCC only, Human, Mosquito, Mouse, Pig, Tick"
         "\nMetadata dictionary: https://idseq.net/metadata/dictionary"
         "\nMetadata CSV template: https://idseq.net/metadata/metadata_template_csv"
     )
