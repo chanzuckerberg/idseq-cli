@@ -285,12 +285,14 @@ def get_user_agreement():
           "yes or N to cancel: "
     prompt(msg)
 
+
 def print_metadata_instructions():
     print(
         "\nInstructions: https://idseq.net/metadata/instructions"
         "\nMetadata dictionary: https://idseq.net/metadata/dictionary"
         "\nMetadata CSV template: https://idseq.net/metadata/metadata_template_csv"
     )
+
 
 def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file=None):
     instructions_printed = False
@@ -349,7 +351,7 @@ def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file
                 for row in list(csv.DictReader(file_data)):
                     name = pop_match_in_dict(["sample_name", "Sample Name"], row)
                     csv_data[name] = row
-            csv_data = geosearch_and_set_csv_locations(base_url, headers, csv_data)
+            csv_data = geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id)
             return csv_data
 
 
@@ -408,7 +410,7 @@ def pop_match_in_dict(keys, dictionary):
             return dictionary.pop(k)
 
 
-def geosearch_and_set_csv_locations(base_url, headers, csv_data):
+def geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id):
     """Automatically geosearch CSV collection locations for matches.
     """
 
@@ -431,6 +433,18 @@ def geosearch_and_set_csv_locations(base_url, headers, csv_data):
     for t in threads:
         t.join()
 
+    # Ask user to accept/reject matches
+    if len(matched_locations) > 0:
+        print("\nConfirm Your Collection Locations")
+        print("We automatically searched for location matches. Please double check and correct any "
+              "errors. If you reject a match, it will be unresolved plain text and not show on "
+              "IDseq maps.")
+        for raw_name, result in matched_locations.items():
+            print('\nWe matched "{}" to "{}"'.format(raw_name, result["name"]))
+            resp = input("Is this correct (y/N)? y for yes or N to reject the match: ")
+            if resp.lower() not in ["y", "yes"]:
+                matched_locations.pop(raw_name)
+
     # Set matched results
     for sample_name, metadata in csv_data.items():
         for field_name, value in metadata.items():
@@ -439,8 +453,6 @@ def geosearch_and_set_csv_locations(base_url, headers, csv_data):
                     result = matched_locations[value]
                     is_human = (metadata.get("host_genome") or metadata.get("Host Genome")) == "Human"
                     metadata[field_name] = process_location_selection(result, is_human)
-
-    # Ask user to accept/reject matches
 
     # Display final matches
     print("\n{:30} | Collection Location".format("Sample Name"))
@@ -465,6 +477,7 @@ def geosearch_and_set_csv_locations(base_url, headers, csv_data):
         print("\n* Unresolved plain text location, not shown on maps.")
     if restricted_found:
         print("\n~ Changed to county/district level for personal privacy.")
+    print("To make additional changes after uploading, go to: {}/my_data?projectId={}".format(base_url, project_id))
     return csv_data
 
 
