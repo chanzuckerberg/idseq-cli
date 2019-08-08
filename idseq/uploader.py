@@ -317,7 +317,7 @@ def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file
                 for row in list(csv.DictReader(file_data)):
                     name = pop_match_in_dict(["sample_name", "Sample Name"], row)
                     csv_data[name] = row
-            return csv_data, metadata_file
+            return csv_data
 
 
 # Display issues with the submitted metadata CSV based on the server response
