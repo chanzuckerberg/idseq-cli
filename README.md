@@ -15,7 +15,7 @@ Check out our repositories:
 - [idseq-web](https://github.com/chanzuckerberg/idseq-web) - Frontend portal
 - [idseq-dag](https://github.com/chanzuckerberg/idseq-dag) - Bioinformatics pipeline and workflow engine
 - [idseq-cli](https://github.com/chanzuckerberg/idseq-cli) - Command line upload interface (here)
-- [idseq-bench](https://github.com/chanzuckerberg/idseq-bench) - Pipeline benchmarking tools 
+- [idseq-bench](https://github.com/chanzuckerberg/idseq-bench) - Pipeline benchmarking tools
 
 
 ## Usage Instructions
@@ -50,10 +50,8 @@ For macOS users: We recommend trying the Homebrew package manager to install `aw
 
 - You will be prompted to upload metadata in a CSV file with your samples. This is also where you will specify the Host Genome.
   - Instructions: https://idseq.net/metadata/instructions
-  - Metadata dictionary: https://idseq.net/metadata/dictionary
+  - Metadata dictionary and supported host genomes: https://idseq.net/metadata/dictionary
   - Metadata CSV template: https://idseq.net/metadata/metadata_template_csv
-
-- Supported host genome values: (see instructions)
 
 - Your authentication token for uploading is the token after -t. Keep this private like a password!
 
