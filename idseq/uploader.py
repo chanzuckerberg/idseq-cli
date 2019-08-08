@@ -256,7 +256,6 @@ def get_user_agreement():
 def print_metadata_instructions():
     print(
         "\nInstructions: https://idseq.net/metadata/instructions"
-        "\nHost genomes: C.elegans, Cat, ERCC only, Human, Mosquito, Mouse, Pig, Tick"
         "\nMetadata dictionary: https://idseq.net/metadata/dictionary"
         "\nMetadata CSV template: https://idseq.net/metadata/metadata_template_csv"
     )
@@ -318,7 +317,7 @@ def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file
                 for row in list(csv.DictReader(file_data)):
                     name = pop_match_in_dict(["sample_name", "Sample Name"], row)
                     csv_data[name] = row
-            return csv_data
+            return csv_data, metadata_file
 
 
 # Display issues with the submitted metadata CSV based on the server response

@@ -53,7 +53,7 @@ For macOS users: We recommend trying the Homebrew package manager to install `aw
   - Metadata dictionary: https://idseq.net/metadata/dictionary
   - Metadata CSV template: https://idseq.net/metadata/metadata_template_csv
 
-- Supported host genome values: C.elegans, Cat, ERCC only, Human, Mosquito, Mouse, Pig, Tick
+- Supported host genome values: (see instructions)
 
 - Your authentication token for uploading is the token after -t. Keep this private like a password!
 
