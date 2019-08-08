@@ -377,9 +377,7 @@ def display_metadata_errors(resp):
 
 def validate_project(base_url, headers, project_name):
     print("Checking project name...")
-    projects_response = requests.get(base_url + "/projects.json", headers=headers)
-    print(projects_response)
-    all_projects = projects_response.json()
+    all_projects = requests.get(base_url + "/projects.json", headers=headers).json()
     names_to_ids = {}
 
     for project in all_projects:
@@ -434,7 +432,7 @@ def geosearch_and_set_csv_locations(base_url, headers, csv_data):
         t.join()
 
     # Set matched results
-    for metadata in csv_data.values():
+    for sample_name, metadata in csv_data.items():
         for field_name, value in metadata.items():
             if field_name.lower() in ["collection_location", "collection location"]:
                 if value in matched_locations:
@@ -442,16 +440,31 @@ def geosearch_and_set_csv_locations(base_url, headers, csv_data):
                     is_human = (metadata.get("host_genome") or metadata.get("Host Genome")) == "Human"
                     metadata[field_name] = process_location_selection(result, is_human)
 
+    # Ask user to accept/reject matches
+
     # Display final matches
     print("\n{:30} | Collection Location".format("Sample Name"))
     print("-" * 60)
+    plain_text_found = False
+    restricted_found = False
     for sample_name, metadata in csv_data.items():
-        for field_name, value in metadata.items():
+        for field_name, result in metadata.items():
             if field_name.lower() in ["collection_location", "collection location"]:
+                value = result
                 if type(value) is dict:
                     value = value["name"]
+                    if result.get("restricted"):
+                        value += " ~"
+                    restricted_found = True
+                    result.pop("restricted")
+                else:
+                    value += " *"
+                    plain_text_found = True
                 print("{:30} | {}".format(sample_name, value))
-
+    if plain_text_found:
+        print("\n* Unresolved plain text location, not shown on maps.")
+    if restricted_found:
+        print("\n~ Changed to county/district level for personal privacy.")
     return csv_data
 
 
@@ -474,15 +487,12 @@ def get_geo_search_suggestion(base_url, headers, query, matched_locations, attem
 
 def process_location_selection(result, is_human):
     if is_human and result.get("geo_level") == "city":
+        # NOTE: The backend will redo the geosearch for confirmation and re-apply this restriction:
         # For human samples, drop the city part of the name and show a warning.
-        # NOTE: The backend will redo the geosearch for confirmation and re-apply
-        # this restriction.
         # TODO(jsheu): Consider consolidating warnings to the backend.
-        new_name = ", ".join([n for n in [result.get("subdivision_name"), result.get("state_name"), result.get("country_name")] if n])
+        new_name = ", ".join([result[n] for n in ["subdivision_name", "state_name", "country_name"] if n in result])
         result["name"] = new_name
-
-    # Add the Y/N prompting here
-
+        result["restricted"] = True
     return result
 
 
