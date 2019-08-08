@@ -439,11 +439,11 @@ def geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id):
         print("We automatically searched for location matches. Please double check and correct any "
               "errors. If you reject a match, it will be unresolved plain text and not show on "
               "IDseq maps.")
-        for raw_name, result in matched_locations.items():
-            print('\nWe matched "{}" to "{}"'.format(raw_name, result["name"]))
+        for raw_name in list(matched_locations.keys()):
+            print('\nWe matched "{}" to "{}"'.format(raw_name, matched_locations[raw_name]["name"]))
             resp = input("Is this correct (y/N)? y for yes or N to reject the match: ")
             if resp.lower() not in ["y", "yes"]:
-                matched_locations.pop(raw_name)
+                del matched_locations[raw_name]
 
     # Set matched results
     for sample_name, metadata in csv_data.items():
@@ -477,7 +477,7 @@ def geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id):
         print("\n* Unresolved plain text location, not shown on maps.")
     if restricted_found:
         print("\n~ Changed to county/district level for personal privacy.")
-    print("To make additional changes after uploading, go to: {}/my_data?projectId={}".format(base_url, project_id))
+    print("\nTo make additional changes after uploading, go to: {}/my_data?projectId={}".format(base_url, project_id))
     return csv_data
 
 
