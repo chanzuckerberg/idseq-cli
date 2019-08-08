@@ -4,11 +4,13 @@ import io
 import json
 import os
 import pkg_resources
+import random
 import re
 import requests
 import stat
 import subprocess
 import sys
+import threading
 import time
 
 from builtins import input
@@ -22,6 +24,8 @@ DEFAULT_MAX_PART_SIZE_IN_MB = 5000
 INPUT_REGEX = "(.+)\.(fastq|fq|fasta|fa)(\.gz|$)"
 PAIRED_REGEX = "(.+)(_R\d)(_001)?\.(fastq|fq|fasta|fa)(\.gz|$)"
 PART_SUFFIX = "__AWS-MULTI-PART-"
+
+MAX_GEOSEARCH_ATTEMPTS = 3
 
 
 class File():
@@ -345,6 +349,7 @@ def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file
                 for row in list(csv.DictReader(file_data)):
                     name = pop_match_in_dict(["sample_name", "Sample Name"], row)
                     csv_data[name] = row
+            csv_data = geosearch_and_set_csv_locations(base_url, headers, csv_data)
             return csv_data
 
 
@@ -372,7 +377,9 @@ def display_metadata_errors(resp):
 
 def validate_project(base_url, headers, project_name):
     print("Checking project name...")
-    all_projects = requests.get(base_url + "/projects.json", headers=headers).json()
+    projects_response = requests.get(base_url + "/projects.json", headers=headers)
+    print(projects_response)
+    all_projects = projects_response.json()
     names_to_ids = {}
 
     for project in all_projects:
@@ -401,6 +408,82 @@ def pop_match_in_dict(keys, dictionary):
     for k in keys:
         if k in dictionary:
             return dictionary.pop(k)
+
+
+def geosearch_and_set_csv_locations(base_url, headers, csv_data):
+    """Automatically geosearch CSV collection locations for matches.
+    """
+
+    # Find the unique plain text values
+    raw_names = set()
+    for metadata in csv_data.values():
+        for field_name, value in metadata.items():
+            if field_name.lower() in ["collection_location", "collection location"]:
+                raw_names.add(value)
+
+    # Geosearch and get matched locations from the server
+    matched_locations = {}
+    semaphore = threading.Semaphore(5)
+    threads = []
+    for query in raw_names:
+        with semaphore:
+            t = threading.Thread(target=get_geo_search_suggestion, args=[base_url, headers, query, matched_locations])
+            t.start()
+            threads.append(t)
+    for t in threads:
+        t.join()
+
+    # Set matched results
+    for metadata in csv_data.values():
+        for field_name, value in metadata.items():
+            if field_name.lower() in ["collection_location", "collection location"]:
+                if value in matched_locations:
+                    result = matched_locations[value]
+                    is_human = (metadata.get("host_genome") or metadata.get("Host Genome")) == "Human"
+                    metadata[field_name] = process_location_selection(result, is_human)
+
+    # Display final matches
+    print("\n{:30} | Collection Location".format("Sample Name"))
+    print("-" * 60)
+    for sample_name, metadata in csv_data.items():
+        for field_name, value in metadata.items():
+            if field_name.lower() in ["collection_location", "collection location"]:
+                if type(value) is dict:
+                    value = value["name"]
+                print("{:30} | {}".format(sample_name, value))
+
+    return csv_data
+
+
+def get_geo_search_suggestion(base_url, headers, query, matched_locations, attempt=0):
+    url = "{}/locations/external_search?query={}&limit=1".format(base_url, query)
+    resp = requests.get(url, headers=headers)
+
+    if resp.status_code == 200:
+        resp = resp.json()
+        if len(resp) > 0:
+            matched_locations[query] = resp[0]
+    elif attempt < MAX_GEOSEARCH_ATTEMPTS:
+        # Wait 1-2 seconds
+        time.sleep(1 + random.random())
+        get_geo_search_suggestion(base_url, headers, query, matched_locations, attempt + 1)
+    else:
+        print("\nError finding location match for: '{}'. Location will be saved as plain text "
+              "and not appear on IDseq maps.\n".format(query))
+
+
+def process_location_selection(result, is_human):
+    if is_human and result.get("geo_level") == "city":
+        # For human samples, drop the city part of the name and show a warning.
+        # NOTE: The backend will redo the geosearch for confirmation and re-apply
+        # this restriction.
+        # TODO(jsheu): Consider consolidating warnings to the backend.
+        new_name = ", ".join([n for n in [result.get("subdivision_name"), result.get("state_name"), result.get("country_name")] if n])
+        result["name"] = new_name
+
+    # Add the Y/N prompting here
+
+    return result
 
 
 class Tqio(io.BufferedReader):
