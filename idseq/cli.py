@@ -149,8 +149,11 @@ def main():
         if not args.accept_all:
             uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):
+            print(files)
             if len(files) < 2:
                 files.append(None)
+            print("to upload:")
+            print(csv_metadata[sample])
             upload_sample(sample, files[0], files[1], headers, args, csv_metadata[sample])
         return
 

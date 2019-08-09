@@ -56,14 +56,16 @@ def confirm_location_matches(matched_locations):
         "IDseq maps."
     )
     for raw_name in list(matched_locations.keys()):
-        print(
-            '\nWe matched "{}" to "{}"'.format(
-                raw_name, matched_locations[raw_name]["name"]
+        result = matched_locations[raw_name]["name"]
+        if raw_name != result:
+            print(
+                '\nWe matched "{}" to "{}"'.format(
+                    raw_name, result
+                )
             )
-        )
-        resp = input("Is this correct (y/N)? y for yes or N to reject the match: ")
-        if resp.lower() not in ["y", "yes"]:
-            del matched_locations[raw_name]
+            resp = input("Is this correct (y/N)? y for yes or N to reject the match: ")
+            if resp.lower() not in ["y", "yes"]:
+                del matched_locations[raw_name]
 
 
 def set_location_matches(csv_data, matched_locations):
@@ -91,8 +93,8 @@ def print_location_matches(csv_data, base_url, project_id):
                     value = value["name"]
                     if result.get("restricted"):
                         value += " ~"
-                    restricted_found = True
-                    result.pop("restricted")
+                        restricted_found = True
+                        result.pop("restricted")
                 else:
                     value += " *"
                     plain_text_found = True
@@ -136,8 +138,8 @@ def process_location_selection(result, is_human):
         # TODO(jsheu): Consider consolidating warnings to the backend.
         new_name = ", ".join(
             [
-                result["{}_name".format(n)]
-                for n in ["subdivision", "state", "country"]
+                result[n]
+                for n in ["subdivision_name", "state_name", "country_name"]
                 if n in result
             ]
         )
