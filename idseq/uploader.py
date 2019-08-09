@@ -1,18 +1,20 @@
+import csv
 import glob
 import io
 import json
 import os
-import re
 import pkg_resources
+import re
 import requests
 import stat
 import subprocess
 import sys
 import time
-import csv
 
 from builtins import input
 from future.utils import viewitems
+from itertools import product
+from string import ascii_lowercase
 
 sys.tracebacklimit = 0
 
@@ -35,18 +37,31 @@ class File():
     def parts(self, max_part_size):
         # Check if any file is over max_part_size and, if so, chunk
         if self.source_type() == 'local' and os.path.getsize(
-                self.path) > max_part_size * 1048576:
+                self.path) > max_part_size:
             part_prefix = self.path + PART_SUFFIX
-            print("splitting large file into {} MB chunks...".format(
-                max_part_size))
-            subprocess.check_output(
-                "split -b {}m {} {}".format(max_part_size, self.path,
-                                            part_prefix),
-                shell=True)
-            return subprocess.check_output(
-                "ls {}*".format(part_prefix), shell=True).decode("utf-8").splitlines()
+            return self.split_file(max_part_size, part_prefix)
         else:
             return [self.path]
+
+    def split_file(self, max_part_size, prefix):
+        print(f"Splitting large file into {int(max_part_size // 1E6)} MB chunks...")
+        if not os.path.isfile(self.path):
+            print(f"Sample file not found: {self.path}")
+            return []
+
+        partial_files = []
+        file_size = os.path.getsize(self.path)
+        suffix_iter = product(ascii_lowercase, repeat=2)
+        try:
+            with open(self.path, 'rb') as fread:
+                for chunk in iter(lambda: fread.read(max_part_size), b''):
+                    partial_files.append("{}{}".format(prefix, ''.join(next(suffix_iter))))
+                    with open(partial_files[-1], 'bw') as fwrite:
+                        fwrite.write(chunk)
+            return partial_files
+        except StopIteration:
+            print(f"[ERROR] File too large")
+            remove_files(partial_files)
 
 
 def build_path(bucket, key):
@@ -88,6 +103,11 @@ def clean_samples2files(samples2files):
         for k, v in viewitems(samples2files) if len(v) in [1, 2]
     }
 
+def remove_files(files):
+    for partial_file in files:
+        if PART_SUFFIX in partial_file:
+            os.remove(files)
+
 
 def detect_samples(path):
     samples2files = {}
@@ -100,8 +120,7 @@ def detect_samples(path):
             m = re.search(INPUT_REGEX, f)
             sample_name = os.path.basename(
                 m2.group(1)) if m2 else os.path.basename(m.group(1))
-            samples2files[sample_name] = samples2files.get(sample_name,
-                                                           []) + [f]
+            samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
         return clean_samples2files(samples2files)
     # If there are no top-level files, try to find them in subfolders.
     # In this case, each subfolder corresponds to one sample.
@@ -109,8 +128,7 @@ def detect_samples(path):
     if files_level2:
         for f in files_level2:
             sample_name = os.path.basename(os.path.dirname(f))
-            samples2files[sample_name] = samples2files.get(sample_name,
-                                                           []) + [f]
+            samples2files[sample_name] = samples2files.get(sample_name, []) + [f]
         return clean_samples2files(samples2files)
     # If there are still no suitable files, tell the user hopw folders must be structured.
     print(
@@ -148,13 +166,14 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
         raise ValueError()
 
     # Clamp max_part_size to a valid value
-    max_part_size = max(min(DEFAULT_MAX_PART_SIZE_IN_MB, chunk_size), 1)
+    max_part_size = int(max(min(DEFAULT_MAX_PART_SIZE_IN_MB, chunk_size), 1) * 1E6)
 
     # Get version of CLI from setuptools
     version = pkg_resources.require("idseq")[0].version
 
     host_genome_name = pop_match_in_dict(["host_genome", "Host Genome"], csv_metadata)
 
+    all_file_parts = [f.parts(max_part_size) for f in files]
     data = {
         "samples": [
             {
@@ -165,9 +184,9 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
                         "name": os.path.basename(f.path),
                         "source": f.path,
                         "source_type": f.source_type(),
-                        "parts": ", ".join(f.parts(max_part_size)),
+                        "parts": ", ".join(file_parts),
                     }
-                    for f in files
+                    for f, file_parts in zip(files, all_file_parts)
                 ],
                 "host_genome_name": host_genome_name,
                 "status": "created"
@@ -185,6 +204,7 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
         print("Connected to the server.")
     else:
         print("\nFailed. Error response from IDseq server: {}".format(resp["errors"]))
+        remove_files(all_file_parts)
         return
 
     if source_type == 'local':
@@ -209,9 +229,10 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
                               'Input file: {}, Sample name: {}'.format(str(resp_put.status_code),
                                                                        str(file),
                                                                        str(sample_name)))
+                        remove_files(all_file_parts)
                         return
                 if PART_SUFFIX in file:
-                    subprocess.check_output("rm {}".format(file), shell=True)
+                    os.remove(file)
 
         # Mark as uploaded
         sample_id = resp["sample_ids"][0]
@@ -231,6 +252,7 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
         if resp.status_code != 200:
             print('Sample was not successfully uploaded. Status code: {}, '
                   'Sample name: {}'.format(str(resp.status_code), str(sample_name)))
+            remove_files(all_file_parts)
             return
 
     print("All done!")

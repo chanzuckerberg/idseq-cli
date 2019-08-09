@@ -136,6 +136,10 @@ def main():
     if args.bulk:
         samples2files = uploader.detect_samples(args.bulk)
 
+        if len(samples2files) == 0:
+            print("No proper single or paired samples detected")
+            return
+
         print("\nSamples and files to upload:")
         for sample, files in viewitems(samples2files):
             print_sample_files_info(sample, files)
