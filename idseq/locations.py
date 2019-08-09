@@ -52,7 +52,7 @@ def confirm_location_matches(matched_locations):
     print("\nConfirm Your Collection Locations")
     print(
         "We automatically searched for location matches. Please double check and correct any "
-        "errors. If you reject a match, it will be unresolved plain text and not show on "
+        "errors. If you reject a match, it will be unresolved plain text and not shown on "
         "IDseq maps."
     )
     for raw_name in list(matched_locations.keys()):
@@ -136,8 +136,8 @@ def process_location_selection(result, is_human):
         # TODO(jsheu): Consider consolidating warnings to the backend.
         new_name = ", ".join(
             [
-                result[n]
-                for n in ["subdivision_name", "state_name", "country_name"]
+                result["{}_name".format(n)]
+                for n in ["subdivision", "state", "country"]
                 if n in result
             ]
         )
