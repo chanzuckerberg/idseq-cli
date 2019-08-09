@@ -4,6 +4,8 @@ import random
 import requests
 import threading
 import time
+# For Python2 compatibility
+from builtins import input
 
 MAX_GEOSEARCH_ATTEMPTS = 3
 MAX_GEOSEARCH_THREADS = 5
