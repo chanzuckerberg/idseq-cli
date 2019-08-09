@@ -1,0 +1,106 @@
+import random
+import requests
+import threading
+import time
+
+MAX_GEOSEARCH_ATTEMPTS = 3
+
+
+def geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id):
+    """Automatically geosearch CSV collection locations for matches.
+    """
+
+    # Find the unique plain text values
+    raw_names = set()
+    for metadata in csv_data.values():
+        for field_name, value in metadata.items():
+            if field_name.lower() in ["collection_location", "collection location"]:
+                raw_names.add(value)
+
+    # Geosearch and get matched locations from the server
+    matched_locations = {}
+    semaphore = threading.Semaphore(5)
+    threads = []
+    for query in raw_names:
+        with semaphore:
+            t = threading.Thread(target=get_geo_search_suggestion, args=[base_url, headers, query, matched_locations])
+            t.start()
+            threads.append(t)
+    for t in threads:
+        t.join()
+
+    # Ask user to accept/reject matches
+    if len(matched_locations) > 0:
+        print("\nConfirm Your Collection Locations")
+        print("We automatically searched for location matches. Please double check and correct any "
+              "errors. If you reject a match, it will be unresolved plain text and not show on "
+              "IDseq maps.")
+        for raw_name in list(matched_locations.keys()):
+            print('\nWe matched "{}" to "{}"'.format(raw_name, matched_locations[raw_name]["name"]))
+            resp = input("Is this correct (y/N)? y for yes or N to reject the match: ")
+            if resp.lower() not in ["y", "yes"]:
+                del matched_locations[raw_name]
+
+    # Set matched results
+    for sample_name, metadata in csv_data.items():
+        for field_name, value in metadata.items():
+            if field_name.lower() in ["collection_location", "collection location"]:
+                if value in matched_locations:
+                    result = matched_locations[value]
+                    is_human = (metadata.get("host_genome") or metadata.get("Host Genome")) == "Human"
+                    metadata[field_name] = process_location_selection(result, is_human)
+
+    # Display final matches
+    print("\n{:30} | Collection Location".format("Sample Name"))
+    print("-" * 60)
+    plain_text_found = False
+    restricted_found = False
+    for sample_name, metadata in csv_data.items():
+        for field_name, result in metadata.items():
+            if field_name.lower() in ["collection_location", "collection location"]:
+                value = result
+                if type(value) is dict:
+                    value = value["name"]
+                    if result.get("restricted"):
+                        value += " ~"
+                    restricted_found = True
+                    result.pop("restricted")
+                else:
+                    value += " *"
+                    plain_text_found = True
+                print("{:30} | {}".format(sample_name, value))
+    if plain_text_found:
+        print("\n* Unresolved plain text location, not shown on maps.")
+    if restricted_found:
+        print("\n~ Changed to county/district level for personal privacy.")
+    print("\nTo make additional changes after uploading, go to: {}/my_data?projectId={} (Upload -> "
+          "Upload Metadata)".format(base_url, project_id))
+    return csv_data
+
+
+def get_geo_search_suggestion(base_url, headers, query, matched_locations, attempt=0):
+    url = "{}/locations/external_search?query={}&limit=1".format(base_url, query)
+    resp = requests.get(url, headers=headers)
+
+    if resp.status_code == 200:
+        resp = resp.json()
+        if len(resp) > 0:
+            matched_locations[query] = resp[0]
+    elif attempt < MAX_GEOSEARCH_ATTEMPTS:
+        # Wait 1-2 seconds
+        time.sleep(1 + random.random())
+        get_geo_search_suggestion(base_url, headers, query, matched_locations, attempt + 1)
+    else:
+        print("\nError finding location match for: '{}'. Location will be saved as plain text "
+              "and not appear on IDseq maps.\n".format(query))
+
+
+def process_location_selection(result, is_human):
+    if is_human and result.get("geo_level") == "city":
+        # NOTE: The backend will redo the geosearch for confirmation and re-apply this restriction:
+        # For human samples, drop the city part of the name and show a warning.
+        # TODO(jsheu): Consider consolidating warnings to the backend.
+        new_name = ", ".join([result[n] for n in ["subdivision_name", "state_name", "country_name"] if n in result])
+        result["name"] = new_name
+        result["restricted"] = True
+    return result
