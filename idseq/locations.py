@@ -94,7 +94,7 @@ def print_location_matches(csv_data, base_url, project_id):
                 if type(value) is dict:
                     value = value["name"]
                     if result.get("restricted"):
-                        value += " ~"
+                        value += " (!)"
                         restricted_found = True
                         result.pop("restricted")
                 else:
@@ -104,10 +104,10 @@ def print_location_matches(csv_data, base_url, project_id):
     if plain_text_found:
         print("\n* Unresolved plain text location, not shown on maps.")
     if restricted_found:
-        print("\n~ Changed to county/district level for personal privacy.")
+        print("\n(!) Changed to county/district level for personal privacy.")
     print(
-        "\nTo make additional changes after uploading, go to: {}/my_data?projectId={} (Upload -> "
-        "Upload Metadata)".format(base_url, project_id)
+        "\nTo make additional changes after uploading, go to the project page: "
+        "{}/my_data?projectId={} (and click Upload -> Upload Metadata)".format(base_url, project_id)
     )
 
 
