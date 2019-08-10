@@ -50,7 +50,6 @@ class File():
             return []
 
         partial_files = []
-        file_size = os.path.getsize(self.path)
         suffix_iter = product(ascii_lowercase, repeat=2)
         try:
             with open(self.path, 'rb') as fread:
