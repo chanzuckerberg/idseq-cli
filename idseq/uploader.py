@@ -44,9 +44,9 @@ class File():
             return [self.path]
 
     def split_file(self, max_part_size, prefix):
-        print(f"Splitting large file into {int(max_part_size // 1E6)} MB chunks...")
+        print("Splitting large file into {} MB chunks...".format(int(max_part_size // 1E6)))
         if not os.path.isfile(self.path):
-            print(f"Sample file not found: {self.path}")
+            print("Sample file not found: {}".format(self.path))
             return []
 
         partial_files = []
@@ -60,7 +60,7 @@ class File():
                         fwrite.write(chunk)
             return partial_files
         except StopIteration:
-            print(f"[ERROR] File too large")
+            print("[ERROR] File too large")
             remove_files(partial_files)
 
 
