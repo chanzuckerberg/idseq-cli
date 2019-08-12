@@ -44,6 +44,7 @@ class File():
             return [self.path]
 
     def split_file(self, max_part_size, prefix):
+        # Using MB (10^6) instead of MiB (2^16)
         print("Splitting large file into {} MB chunks...".format(int(max_part_size // 1E6)))
         if not os.path.isfile(self.path):
             print("Sample file not found: {}".format(self.path))
