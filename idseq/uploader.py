@@ -249,7 +249,13 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
             data=json.dumps(update),
             headers=headers)
 
-        if resp.status_code != 200:
+        has_file_parts = any(len(parts) > 1 for parts in all_file_parts)
+        if resp.status_code == 504 and has_file_parts:
+            # Note: Not ideal, but for now idseq-web times out trying to concatenate file parts on the server
+            print('Sample is being processed on our server. Check for status on IDseq https://idseq.net')
+            remove_files(all_file_parts)
+            return
+        elif resp.status_code != 200:
             print('Sample was not successfully uploaded. Status code: {}, '
                   'Sample name: {}'.format(str(resp.status_code), str(sample_name)))
             remove_files(all_file_parts)
