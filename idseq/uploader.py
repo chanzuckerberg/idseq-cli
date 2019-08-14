@@ -16,6 +16,8 @@ from future.utils import viewitems
 from itertools import product
 from string import ascii_lowercase
 
+from . import locations
+
 sys.tracebacklimit = 0
 
 DEFAULT_MAX_PART_SIZE_IN_MB = 5000
@@ -196,14 +198,20 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
         "client": version
     }
 
-    resp = requests.post(
+    raw_resp = requests.post(
         url + '/samples/bulk_upload_with_metadata.json', data=json.dumps(data), headers=headers)
-    resp = resp.json()
+    resp = raw_resp.json()
 
-    if len(resp.get("errors", {})) == 0:
-        print("Connected to the server.")
+    if raw_resp.status_code == 200:
+        if len(resp.get("errors", {})) == 0:
+            print("Connected to the server.")
+        else:
+            print("\nFailed. Error response from IDseq server: {}".format(resp["errors"]))
+            remove_files(all_file_parts)
+            return
     else:
-        print("\nFailed. Error response from IDseq server: {}".format(resp["errors"]))
+        # Handle potential responses without proper error fields
+        print("\nFailed. Error response: {}".format(resp))
         remove_files(all_file_parts)
         return
 
@@ -281,12 +289,14 @@ def get_user_agreement():
           "yes or N to cancel: "
     prompt(msg)
 
+
 def print_metadata_instructions():
     print(
         "\nInstructions: https://idseq.net/metadata/instructions"
         "\nMetadata dictionary: https://idseq.net/metadata/dictionary"
         "\nMetadata CSV template: https://idseq.net/metadata/metadata_template_csv"
     )
+
 
 def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file=None):
     instructions_printed = False
@@ -345,6 +355,7 @@ def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file
                 for row in list(csv.DictReader(file_data)):
                     name = pop_match_in_dict(["sample_name", "Sample Name"], row)
                     csv_data[name] = row
+            csv_data = locations.geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id)
             return csv_data
 
 
