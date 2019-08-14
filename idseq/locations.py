@@ -4,11 +4,19 @@ import random
 import requests
 import threading
 import time
+
 # For Python2 compatibility
 from builtins import input
 
 MAX_GEOSEARCH_ATTEMPTS = 3
 MAX_GEOSEARCH_THREADS = 5
+COLLECTION_LOCATION_ALIASES = [
+    "collection location",
+    "Collection Location",
+    "Collection location",
+    "collection_location",
+]
+HOST_GENOME_ALIASES = ["host_genome", "Host Genome", "Host genome", "host genome"]
 
 
 def geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id):
@@ -28,7 +36,7 @@ def get_raw_locations(csv_data):
     raw_names = set()
     for metadata in csv_data.values():
         for field_name, value in metadata.items():
-            if field_name.lower() in ["collection_location", "collection location"]:
+            if field_name.lower() in COLLECTION_LOCATION_ALIASES:
                 raw_names.add(value)
     return raw_names
 
@@ -60,11 +68,7 @@ def confirm_location_matches(matched_locations):
     for raw_name in list(matched_locations.keys()):
         result = matched_locations[raw_name]["name"]
         if raw_name != result:
-            print(
-                '\nWe matched "{}" to "{}"'.format(
-                    raw_name, result
-                )
-            )
+            print('\nWe matched "{}" to "{}"'.format(raw_name, result))
             resp = input("Is this correct (y/N)? y for yes or N to reject the match: ")
             if resp.lower() not in ["y", "yes"]:
                 del matched_locations[raw_name]
@@ -73,12 +77,12 @@ def confirm_location_matches(matched_locations):
 def set_location_matches(csv_data, matched_locations):
     for sample_name, metadata in csv_data.items():
         for field_name, value in metadata.items():
-            if field_name.lower() in ["collection_location", "collection location"]:
+            if field_name.lower() in COLLECTION_LOCATION_ALIASES:
                 if value in matched_locations:
                     result = matched_locations[value]
-                    is_human = (
-                        metadata.get("host_genome") or metadata.get("Host Genome")
-                    ) == "Human"
+                    is_human = any(
+                        [metadata.get(n) == "Human" for n in HOST_GENOME_ALIASES]
+                    )
                     metadata[field_name] = process_location_selection(result, is_human)
 
 
@@ -89,7 +93,7 @@ def print_location_matches(csv_data, base_url, project_id):
     restricted_found = False
     for sample_name, metadata in csv_data.items():
         for field_name, result in metadata.items():
-            if field_name.lower() in ["collection_location", "collection location"]:
+            if field_name.lower() in COLLECTION_LOCATION_ALIASES:
                 value = result
                 if type(value) is dict:
                     value = value["name"]
@@ -107,7 +111,9 @@ def print_location_matches(csv_data, base_url, project_id):
         print("\n(!) Changed to county/district level for personal privacy.")
     print(
         "\nTo make additional changes after uploading, go to the project page: "
-        "{}/my_data?projectId={} (and click Upload -> Upload Metadata)".format(base_url, project_id)
+        "{}/my_data?projectId={} (and click Upload -> Upload Metadata)".format(
+            base_url, project_id
+        )
     )
 
 
