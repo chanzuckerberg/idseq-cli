@@ -404,6 +404,9 @@ def validate_project(base_url, headers, project_name):
                 data=json.dumps({"project": {"name": project_name}}),
                 headers=headers
             )
+            if resp.status_code == 422:
+                print("Project name is too similar to an existing project. Please try another name.")
+                continue
             resp = resp.json()
             print("Project created!")
             return resp["name"], resp["id"]
