@@ -228,9 +228,12 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
         for raw_input_file in sample_data['input_files']:
             presigned_urls = raw_input_file['presigned_url'].split(", ")
             input_parts = raw_input_file["parts"].split(", ")
-            for i, file in enumerate(input_parts):
-                presigned_url = presigned_urls[i]
-                with Tqio(file, i, num_files) as f:
+            for part_index, file in enumerate(input_parts):
+                presigned_url = presigned_urls[part_index]
+                print('Uploading {} (part {} of {})...'.format(
+                    file, part_index, len(input_parts)
+                ))
+                with Tqio(file, part_index, num_files) as f:
                     resp_put = requests.put(presigned_url, data=f)
                     if resp_put.status_code != 200:
                         print('Sample was not successfully uploaded. Status code: {}, '
@@ -417,7 +420,6 @@ def pop_match_in_dict(keys, dictionary):
 class Tqio(io.BufferedReader):
     def __init__(self, file_path, i, count):
         super(Tqio, self).__init__(io.open(file_path, "rb"))
-        self.write_stdout("\nUploading {}...\n\r".format(file_path))
         self.progress = 0
         self.chunk_idx = 0
         self.total = os.path.getsize(file_path)
