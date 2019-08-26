@@ -74,3 +74,10 @@ Edit the command in this text box and copy-and-paste:
 
 `idseq -e YOUR_EMAIL -t YOUR_TOKEN -p 'Your Project Name' --bulk .`
 - The '.' refers to the current folder in your terminal. The program will try to auto-detect files in the folder.
+
+## Troubleshooting
+
+### `OverflowError: cannot fit 'int' into an index-sized integer.`
+
+Your computer might be limited on RAM. Try reducing your file chunk size by adding `--uploadchunksize 250` to your command. This splits your file into smaller pieces before uploading each one to IDseq.
+
