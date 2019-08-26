@@ -48,6 +48,8 @@ For macOS users: We recommend trying the Homebrew package manager to install `aw
 - Replace YOUR_EMAIL with your IDseq email and YOUR_TOKEN with your upload token.
 - Supported file types: .fastq/.fq/.fasta/.fa or .fastq.gz/.fq.gz/.fasta.gz/.fa.gz
 
+- You can create a new project as part of this command. Provide the name of a project that doesn't exist yet and the command will create it for you.
+
 - You will be prompted to upload metadata in a CSV file with your samples. This is also where you will specify the Host Genome.
   - Instructions: https://idseq.net/metadata/instructions
   - Metadata dictionary and supported host genomes: https://idseq.net/metadata/dictionary
@@ -59,7 +61,7 @@ For macOS users: We recommend trying the Homebrew package manager to install `aw
 
 - The '\' symbol means to continue on the next line in the terminal. If you use this in your command, make sure it is not followed by a space before the line break.
 
-- New to using a command line? You will need to use cd and ls to navigate to the folder on your computer containing the source files you want to upload. Guide here.
+- New to using a command line? You will need to use cd and ls to navigate to the folder on your computer containing the source files you want to upload. [Guide here](https://www.git-tower.com/learn/git/ebook/en/command-line/appendix/command-line-101).
 
 ### (Optional) Run the program in interactive mode:
 
