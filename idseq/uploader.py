@@ -16,7 +16,7 @@ from future.utils import viewitems
 from itertools import product
 from string import ascii_lowercase
 
-from . import locations
+import locations
 
 sys.tracebacklimit = 0
 
@@ -184,9 +184,9 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
                 "input_files_attributes": [
                     {
                         "name": os.path.basename(f.path),
-                        "source": f.path,
+                        "source": f.path if f.source_type() == 's3' else os.path.basename(f.path),
                         "source_type": f.source_type(),
-                        "parts": ", ".join(file_parts),
+                        "parts": ", ".join([os.path.basename(f) for f in file_parts]),
                     }
                     for f, file_parts in zip(files, all_file_parts)
                 ],
