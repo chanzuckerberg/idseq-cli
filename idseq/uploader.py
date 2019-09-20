@@ -16,7 +16,7 @@ from future.utils import viewitems
 from itertools import product
 from string import ascii_lowercase
 
-import locations
+from . import locations
 
 sys.tracebacklimit = 0
 
