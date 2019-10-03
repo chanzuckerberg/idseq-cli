@@ -389,7 +389,7 @@ def validate_project(base_url, headers, project_name):
     all_projects = requests.get(base_url + "/projects.json", headers=headers).json()
     names_to_ids = {}
 
-    for project in all_projects:
+    for project in all_projects["projects"]:
         names_to_ids[project["name"]] = project["id"]
 
     while project_name not in names_to_ids:
