@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='idseq',
-      version='0.8.3',
+      version='0.8.4',
       description='IDseq CLI',
       url='http://github.com/chanzuckerberg/idsdeq-cli',
       author='Chan Zuckerberg Initiative, LLC',
