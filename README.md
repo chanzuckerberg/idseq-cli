@@ -36,7 +36,7 @@ For macOS users: We recommend trying the Homebrew package manager to install `aw
 ### (2) Install the IDseq CLI:
 
 `pip install git+https://github.com/chanzuckerberg/idseq-cli.git --upgrade`
-- Tips: Make sure you have Python 2 or 3 installed already. Try running pip --version or python --version.
+- Tips: Make sure you have Python installed already. Try running pip --version or python --version.
 
 - Try running with pip2 or pip3 depending on your configuration. Try sudo pip if you run into permissions errors. You can use this same command in the future to update the CLI if needed.
 
