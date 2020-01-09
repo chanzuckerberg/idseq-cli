@@ -386,7 +386,11 @@ def display_metadata_errors(resp):
 
 def validate_project(base_url, headers, project_name):
     print("Checking project name...")
-    all_projects = requests.get(base_url + "/projects.json", headers=headers).json()
+    resp = requests.get(base_url + "/projects.json", headers=headers)
+    if resp.status_code == 401:
+        print("Invalid email or token. Please double-check your formatting and try again.")
+        quit()
+    all_projects = resp.json()
     names_to_ids = {}
 
     for project in all_projects["projects"]:
