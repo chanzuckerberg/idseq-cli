@@ -388,8 +388,8 @@ def validate_project(base_url, headers, project_name):
     print("Checking project name...")
     resp = requests.get(base_url + "/projects.json", headers=headers)
     if resp.status_code == 401:
-        print("Invalid email or token. Please double-check the formatting in the instructions.")
-        return
+        print("Invalid email or token. Please double-check your formatting and try again.")
+        quit()
     all_projects = resp.json()
     names_to_ids = {}
 
