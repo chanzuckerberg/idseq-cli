@@ -8,6 +8,8 @@ import time
 # For Python2 compatibility
 from builtins import input
 
+from . import constants
+
 MAX_GEOSEARCH_ATTEMPTS = 3
 MAX_GEOSEARCH_THREADS = 5
 COLLECTION_LOCATION_ALIASES = [
@@ -16,8 +18,6 @@ COLLECTION_LOCATION_ALIASES = [
     "Collection location",
     "collection_location",
 ]
-HOST_GENOME_ALIASES = ["host_genome", "Host Genome", "Host genome", "host genome"]
-
 
 def geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id):
     """Automatically geosearch CSV collection locations for matches."""
@@ -81,7 +81,7 @@ def set_location_matches(csv_data, matched_locations):
                 if value in matched_locations:
                     result = matched_locations[value]
                     is_human = any(
-                        [metadata.get(n) == "Human" for n in HOST_GENOME_ALIASES]
+                        [metadata.get(n) == "Human" for n in constants.HOST_GENOME_ALIASES]
                     )
                     metadata[field_name] = process_location_selection(result, is_human)
 
