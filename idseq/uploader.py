@@ -16,6 +16,7 @@ from future.utils import viewitems
 from itertools import product
 from string import ascii_lowercase
 
+from . import constants
 from . import locations
 
 sys.tracebacklimit = 0
@@ -173,7 +174,10 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
     # Get version of CLI from setuptools
     version = pkg_resources.require("idseq")[0].version
 
-    host_genome_name = pop_match_in_dict(["host_genome", "Host Genome"], csv_metadata)
+    host_genome_name = pop_match_in_dict(constants.HOST_GENOME_ALIASES, csv_metadata)
+    if not host_genome_name:
+        print("ERROR: no host organism in CSV")
+        raise ValueError()
 
     all_file_parts = [f.parts(max_part_size) for f in files]
     data = {
