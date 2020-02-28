@@ -59,7 +59,7 @@ class File():
             with open(self.path, 'rb') as fread:
                 for chunk in iter(lambda: fread.read(max_part_size), b''):
                     partial_files.append("{}{}".format(prefix, ''.join(next(suffix_iter))))
-                    with open(partial_files[-1], 'bw') as fwrite:
+                    with open(partial_files[-1], 'wb') as fwrite:
                         fwrite.write(chunk)
             return partial_files
         except StopIteration:
