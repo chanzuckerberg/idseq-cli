@@ -5,21 +5,25 @@ import json
 import os
 import pkg_resources
 import re
-import requests
 import stat
 import subprocess
 import sys
 import time
 
+import boto3
+import requests
+
 from builtins import input
-from future.utils import viewitems
 from itertools import product
 from string import ascii_lowercase
 
 from . import constants
 from . import locations
 
-sys.tracebacklimit = 0
+s3 = boto3.client("s3")
+
+# TODO: (gdingle):
+# sys.tracebacklimit = 0
 
 DEFAULT_MAX_PART_SIZE_IN_MB = 5000
 INPUT_REGEX = "(.+)\.(fastq|fq|fasta|fa)(\.gz|$)"
@@ -80,17 +84,14 @@ def determine_level(file_path, search_key):
 def detect_files(path, level=1):
     # S3 source (user needs access to the location they're trying to upload from):
     if path.startswith('s3://'):
-        clean_path = path.rstrip('/')
         bucket = path.split("/")[2]
-        file_list = subprocess.check_output(
-            "aws s3 ls {}/ --recursive | awk '{{print $4}}'".format(clean_path),
-            shell=True).splitlines()
-        file_list = [f.decode("UTF-8") for f in file_list]
-        return [
-            build_path(bucket, f)
-            for f in file_list
-            if re.search(INPUT_REGEX, f) and determine_level(build_path(bucket, f), clean_path) == level
-        ]
+        prefix = path.split(bucket)[1].strip('/')
+        s3_list = s3.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=1000)
+        if 'Contents' in s3_list:
+            return [build_path(bucket, obj['Key']) for obj in s3_list['Contents']]
+        else:
+            return []
+
     # local source:
     wildcards = "/*" * level
     return [
@@ -103,7 +104,7 @@ def clean_samples2files(samples2files):
     # Sort files (R1 before R2) and remove samples that don't have 1 or 2 files:
     return {
         k: sorted(v)
-        for k, v in viewitems(samples2files) if len(v) in [1, 2]
+        for k, v in samples2files.items() if len(v) in [1, 2]
     }
 
 def remove_files(files):
@@ -149,7 +150,17 @@ def detect_samples(path):
     raise ValueError()
 
 
-def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metadata):
+def upload(
+    sample_name,
+    project_id,
+    headers,
+    url,
+    r1,
+    r2,
+    chunk_size,
+    csv_metadata,
+    args,
+):
     print("\nPreparing to upload sample \"{}\" ...".format(sample_name))
 
     files = [File(r1)]
@@ -172,7 +183,11 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
     max_part_size = int(max(min(DEFAULT_MAX_PART_SIZE_IN_MB, chunk_size), 1) * 1E6)
 
     # Get version of CLI from setuptools
-    version = pkg_resources.require("idseq")[0].version
+    try:
+        version = pkg_resources.require("idseq")[0].version
+    except pkg_resources.DistributionNotFound:
+        # HACK ALERT: for aws lambda
+        version = '0.8.6'
 
     host_genome_name = pop_match_in_dict(constants.HOST_GENOME_ALIASES, csv_metadata)
     if not host_genome_name:
@@ -195,13 +210,14 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
                     for f, file_parts in zip(files, all_file_parts)
                 ],
                 "host_genome_name": host_genome_name,
-                "status": "created"
+                "status": "created",
+                "use_taxon_whitelist": args.use_taxon_whitelist,
+                "do_not_process": args.do_not_process,
             }
         ],
         "metadata": {sample_name: csv_metadata},
         "client": version
     }
-
     raw_resp = requests.post(
         url + '/samples/bulk_upload_with_metadata.json', data=json.dumps(data), headers=headers)
     resp = raw_resp.json()
@@ -210,8 +226,9 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
         if len(resp.get("errors", {})) == 0:
             print("Connected to the server.")
         else:
-            print("\nFailed. Error response from IDseq server: {}".format(resp["errors"]))
             remove_files(all_file_parts)
+            errors = resp["errors"]
+            print("\nFailed. Error response from IDseq server: {}".format(errors))
             return
     else:
         # Handle potential responses without proper error fields
@@ -305,7 +322,15 @@ def print_metadata_instructions():
     )
 
 
-def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file=None):
+def get_user_metadata(
+    base_url,
+    headers,
+    sample_names,
+    project_id,
+    metadata_file=None,
+    skip_geosearch=False,
+    accept_all=False
+):
     instructions_printed = False
 
     if not metadata_file:
@@ -313,21 +338,19 @@ def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file
         print_metadata_instructions()
         instructions_printed = True
         metadata_file = input("\nEnter the metadata file: ")
+        csv_data = _read_csv_data(metadata_file)
+    elif isinstance(metadata_file, dict):
+        # For single sample upload
+        csv_data = [list(metadata_file.keys()), list(metadata_file.values())]
+        print("{:20}{}".format("Metadata:", metadata_file))
     else:
         print("{:20}{}".format("Metadata file:", metadata_file))
+        csv_data = _read_csv_data(metadata_file)
 
     # Loop for metadata CSV validation
     errors = [-1]
     while len(errors) != 0:
         try:
-            try:
-                with io.open(metadata_file, 'r', encoding='utf-8') as f:
-                    csv_data = list(csv.reader(f))
-            # If a Unicode error is thrown, it's possible that the user has generated
-            # a CSV from Excel that uses latin-1 encoding. Try alternate encoding.
-            except UnicodeDecodeError:
-                with io.open(metadata_file, 'r', encoding='latin-1') as f:
-                    csv_data = list(csv.reader(f))
 
             # Format data for the validation endpoint
             data = {
@@ -354,16 +377,28 @@ def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file
             resp = input("\nPlease fix the errors and press Enter to upload again. Or enter a different file name: ")
             metadata_file = resp or metadata_file
         else:
-            print("\nCSV validation successful!")
+            print("\nMetadata validation successful!")
 
-            # Send metadata as { sample_name => {metadata_key: value} }
-            csv_data = {}
-            with open(metadata_file) as file_data:
-                for row in list(csv.DictReader(file_data)):
-                    name = pop_match_in_dict(["sample_name", "Sample Name"], row)
-                    csv_data[name] = row
-            csv_data = locations.geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id)
-            return csv_data
+            csv_dict = {}
+            if isinstance(metadata_file, dict):
+                # Single file upload
+                name = pop_match_in_dict(["sample_name", "Sample Name"], metadata_file)
+                csv_dict[name] = metadata_file
+            else:
+                # Send metadata as { sample_name => {metadata_key: value} }
+                with open(metadata_file) as file_data:
+                    for row in list(csv.DictReader(file_data)):
+                        name = pop_match_in_dict(["sample_name", "Sample Name"], row)
+                        csv_dict[name] = row
+            if not skip_geosearch:
+                csv_dict = locations.geosearch_and_set_csv_locations(
+                    base_url,
+                    headers,
+                    csv_dict,
+                    project_id,
+                    accept_all
+                )
+            return csv_dict
 
 
 # Display issues with the submitted metadata CSV based on the server response
@@ -458,3 +493,13 @@ class Tqio(io.BufferedReader):
         chunk = super(Tqio, self).read(*args, **kwargs)
         self.update(len(chunk))
         return chunk
+
+def _read_csv_data(metadata_file):
+    try:
+        with io.open(metadata_file, 'r', encoding='utf-8') as f:
+            return list(csv.reader(f))
+    # If a Unicode error is thrown, it's possible that the user has generated
+    # a CSV from Excel that uses latin-1 encoding. Try alternate encoding.
+    except UnicodeDecodeError:
+        with io.open(metadata_file, 'r', encoding='latin-1') as f:
+            return list(csv.reader(f))
