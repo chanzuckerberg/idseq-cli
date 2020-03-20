@@ -149,7 +149,17 @@ def detect_samples(path):
     raise ValueError()
 
 
-def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metadata):
+def upload(
+    sample_name,
+    project_id,
+    headers,
+    url,
+    r1,
+    r2,
+    chunk_size,
+    csv_metadata,
+    skip_duplicates=False
+):
     print("\nPreparing to upload sample \"{}\" ...".format(sample_name))
 
     files = [File(r1)]
@@ -210,9 +220,16 @@ def upload(sample_name, project_id, headers, url, r1, r2, chunk_size, csv_metada
         if len(resp.get("errors", {})) == 0:
             print("Connected to the server.")
         else:
-            print("\nFailed. Error response from IDseq server: {}".format(resp["errors"]))
-            remove_files(all_file_parts)
-            return
+            errors = resp["errors"]
+            if skip_duplicates and errors[0]['name'] == ['has already been taken']:
+                # This error is returned from Rails web app according to the
+                # validation rule on the name attribute. See Sample.rb in the
+                # idseq-web repo.
+                raise ValueError('name has already been taken')
+            else:
+                print("\nFailed. Error response from IDseq server: {}".format(resp["errors"]))
+                remove_files(all_file_parts)
+                return
     else:
         # Handle potential responses without proper error fields
         print("\nFailed. Error response: {}".format(resp))

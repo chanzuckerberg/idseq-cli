@@ -92,6 +92,10 @@ def main():
         '--skip-geosearch',
         action='store_true',
         help='Use this argument to skip searching for geo-location via third-party API')
+    parser.add_argument(
+        '--skip-duplicates',
+        action='store_true',
+        help='Use this argument with bulk mode (-b) to skip samples that have already been uploaded')
     args = parser.parse_args()
 
     print("Instructions: https://idseq.net/cli_user_instructions\nStarting "
@@ -158,11 +162,13 @@ def upload_sample(sample_name, file_0, file_1, headers, args, csv_metadata):
     try:
         uploader.upload(
             sample_name, args.project_id, headers, args.url, file_0, file_1,
-            args.uploadchunksize, csv_metadata
+            args.uploadchunksize, csv_metadata, args.skip_duplicates,
         )
     except requests.exceptions.RequestException as e:
         sample_error_text(sample_name, e)
         network_err_text()
+    except ValueError as e:
+        print(f'Skipping {sample_name}: name has already been taken in project {args.project or args.project_id}.')
     except Exception as e:
         traceback.print_exc()
         sample_error_text(sample_name, e)
