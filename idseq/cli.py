@@ -36,6 +36,7 @@ def main():
         help='Sample name. It should be unique within a project. Ignored for bulk uploads.')
     parser.add_argument(
         '-m',
+        # TODO: (gdingle): accept a URL?
         '--metadata',
         metavar='file',
         type=str,
@@ -84,7 +85,8 @@ def main():
     parser.add_argument(
         '--accept-all',
         action='store_true',
-        help='Use this argument to automatically accept confirmation messages')
+        help='Use this argument to automatically accept confirmation messages, '
+            'including confirmation of geosearch suggestions.')
     parser.add_argument(
         '--skip-geosearch',
         action='store_true',
