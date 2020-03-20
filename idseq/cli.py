@@ -12,7 +12,8 @@ from future.utils import viewitems
 def validate_file(path, name):
     pattern = uploader.INPUT_REGEX
     if not re.search(pattern, path):
-        print("ERROR: {} ({}) file does not appear to be a fastq or fasta file.".format(name, path))
+        print("ERROR: {} ({}) file does not appear to be a fastq or fasta file.".format(
+            name, path))
         print("Accepted formats: fastq/fq, fasta/fa, fastq.gz/fq.gz, fasta.gz/fa.gz")
         raise ValueError
 
@@ -86,7 +87,7 @@ def main():
         '--accept-all',
         action='store_true',
         help='Use this argument to automatically accept confirmation messages, '
-            'including confirmation of geosearch suggestions.')
+        'including confirmation of geosearch suggestions.')
     parser.add_argument(
         '--skip-geosearch',
         action='store_true',
