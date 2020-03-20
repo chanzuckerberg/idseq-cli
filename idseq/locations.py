@@ -19,12 +19,12 @@ COLLECTION_LOCATION_ALIASES = [
     "collection_location",
 ]
 
-def geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id):
+def geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id, accept_all):
     """Automatically geosearch CSV collection locations for matches."""
     raw_names = get_raw_locations(csv_data)
 
     matched_locations = fetch_location_matches(raw_names, base_url, headers)
-    if len(matched_locations) > 0:
+    if len(matched_locations) > 0 and not accept_all:
         confirm_location_matches(matched_locations)
 
     set_location_matches(csv_data, matched_locations)

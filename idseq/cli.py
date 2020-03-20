@@ -2,6 +2,7 @@ import argparse
 import re
 import requests
 import traceback
+
 from . import uploader
 
 from builtins import input
@@ -87,6 +88,10 @@ def main():
         '--accept-all',
         action='store_true',
         help='Use this argument to automatically accept confirmation messages')
+    parser.add_argument(
+        '--skip-geosearch',
+        action='store_true',
+        help='Use this argument to skip searching for geo-location via third-party API')
     args = parser.parse_args()
 
     print("Instructions: https://idseq.net/cli_user_instructions\nStarting "
@@ -144,7 +149,14 @@ def main():
         for sample, files in viewitems(samples2files):
             print_sample_files_info(sample, files)
         csv_metadata = uploader.get_user_metadata(
-            args.url, headers, list(samples2files.keys()), args.project_id, args.metadata)
+            args.url,
+            headers,
+            list(samples2files.keys()),
+            args.project_id,
+            args.metadata,
+            args.skip_geosearch,
+            args.accept_all,
+        ),
         if not args.accept_all:
             uploader.get_user_agreement()
         for sample, files in viewitems(samples2files):

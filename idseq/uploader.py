@@ -305,7 +305,7 @@ def print_metadata_instructions():
     )
 
 
-def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file=None):
+def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file=None, skip_geosearch=False, accept_all=False):
     instructions_printed = False
 
     if not metadata_file:
@@ -362,7 +362,14 @@ def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file
                 for row in list(csv.DictReader(file_data)):
                     name = pop_match_in_dict(["sample_name", "Sample Name"], row)
                     csv_data[name] = row
-            csv_data = locations.geosearch_and_set_csv_locations(base_url, headers, csv_data, project_id)
+            if not skip_geosearch:
+                csv_data = locations.geosearch_and_set_csv_locations(
+                    base_url,
+                    headers,
+                    csv_data,
+                    project_id,
+                    accept_all
+                )
             return csv_data
 
 
