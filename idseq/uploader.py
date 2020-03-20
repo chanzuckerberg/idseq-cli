@@ -228,7 +228,7 @@ def upload(
                 # idseq-web repo.
                 raise ValueError('name has already been taken')
             else:
-                print("\nFailed. Error response from IDseq server: {}".format(resp["errors"]))
+                print("\nFailed. Error response from IDseq server: {}".format(errors))
                 return
     else:
         # Handle potential responses without proper error fields
