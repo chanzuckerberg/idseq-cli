@@ -191,7 +191,6 @@ def _bulk_upload(args, headers):
     if len(samples2files) == 0:
         print("No proper single or paired samples detected")
         return
-
     print("\nSamples and files to upload:")
     for sample, files in viewitems(samples2files):
         print_sample_files_info(sample, files)
@@ -203,7 +202,7 @@ def _bulk_upload(args, headers):
         args.metadata,
         args.skip_geosearch,
         args.accept_all,
-    ),
+    )
     if not args.accept_all:
         uploader.get_user_agreement()
     for sample, files in viewitems(samples2files):
