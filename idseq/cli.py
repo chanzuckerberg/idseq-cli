@@ -12,11 +12,8 @@ from future.utils import viewitems
 def validate_file(path, name):
     pattern = uploader.INPUT_REGEX
     if not re.search(pattern, path):
-        print(
-            "ERROR: {} ({}) file does not appear to be a fastq or fasta file.".format(name, path))
-        print(
-            "Accepted formats: fastq/fq, fasta/fa, fastq.gz/fq.gz, fasta.gz/fa.gz"
-        )
+        print("ERROR: {} ({}) file does not appear to be a fastq or fasta file.".format(name, path))
+        print("Accepted formats: fastq/fq, fasta/fa, fastq.gz/fq.gz, fasta.gz/fa.gz")
         raise ValueError
 
 
@@ -109,7 +106,7 @@ def main():
     if not args.bulk:
         if not args.sample_name:
             inp = input("{:35}".format("\nEnter the sample name (or press Enter to "
-                        "use bulk mode): "))
+                                       "use bulk mode): "))
             if inp is '':
                 args.bulk = "."  # Run bulk auto-detect on the current folder
             else:
@@ -133,49 +130,18 @@ def main():
         "X-User-Token": args.token,
     }
 
-    args.project, args.project_id = uploader.validate_project(args.url, headers, args.project)
+    args.project, args.project_id = uploader.validate_project(
+        args.url, headers, args.project)
 
     print("\n{:20}{}".format("PROJECT:", args.project))
 
     # Bulk upload
     if args.bulk:
-        samples2files = uploader.detect_samples(args.bulk)
-
-        if len(samples2files) == 0:
-            print("No proper single or paired samples detected")
-            return
-
-        print("\nSamples and files to upload:")
-        for sample, files in viewitems(samples2files):
-            print_sample_files_info(sample, files)
-        csv_metadata = uploader.get_user_metadata(
-            args.url,
-            headers,
-            list(samples2files.keys()),
-            args.project_id,
-            args.metadata,
-            args.skip_geosearch,
-            args.accept_all,
-        ),
-        if not args.accept_all:
-            uploader.get_user_agreement()
-        for sample, files in viewitems(samples2files):
-            if len(files) < 2:
-                files.append(None)
-            upload_sample(sample, files[0], files[1], headers, args, csv_metadata[sample])
+        _bulk_upload(args, headers)
         return
 
-    # Single upload
-    validate_file(args.r1, 'R1')
-    input_files = [args.r1]
-    if args.r2:
-        validate_file(args.r2, 'R2')
-        input_files.append(args.r2)
-    print_sample_files_info(args.sample_name, input_files)
-    csv_metadata = uploader.get_user_metadata(args.url, headers, [args.sample_name], args.project_id, args.metadata)
-    if not args.accept_all:
-        uploader.get_user_agreement()
-    upload_sample(args.sample_name, args.r1, args.r2, headers, args, csv_metadata[args.sample_name])
+    _single_upload(args, headers)
+    return
 
 
 def required_input(msg):
@@ -214,6 +180,59 @@ def network_err_text():
         "\nThere was a network error. Please check your network connection "
         "and try again.\nYour sample may say \"Waiting\" on IDseq but likely "
         "needs to be re-uploaded (under a different name).")
+
+
+def _bulk_upload(args, headers):
+    samples2files = uploader.detect_samples(args.bulk)
+
+    if len(samples2files) == 0:
+        print("No proper single or paired samples detected")
+        return
+
+    print("\nSamples and files to upload:")
+    for sample, files in viewitems(samples2files):
+        print_sample_files_info(sample, files)
+    csv_metadata = uploader.get_user_metadata(
+        args.url,
+        headers,
+        list(samples2files.keys()),
+        args.project_id,
+        args.metadata,
+        args.skip_geosearch,
+        args.accept_all,
+    ),
+    if not args.accept_all:
+        uploader.get_user_agreement()
+    for sample, files in viewitems(samples2files):
+        if len(files) < 2:
+            files.append(None)
+        upload_sample(sample, files[0], files[1],
+                      headers, args, csv_metadata[sample])
+    return
+
+
+def _single_upload(args, headers):
+    # Single upload
+    validate_file(args.r1, 'R1')
+    input_files = [args.r1]
+    if args.r2:
+        validate_file(args.r2, 'R2')
+        input_files.append(args.r2)
+    print_sample_files_info(args.sample_name, input_files)
+    csv_metadata = uploader.get_user_metadata(
+        args.url,
+        headers,
+        [args.sample_name],
+        args.project_id,
+        args.metadata,
+        args.skip_geosearch,
+        args.accept_all,
+    )
+    if not args.accept_all:
+        uploader.get_user_agreement()
+    upload_sample(args.sample_name, args.r1, args.r2, headers,
+                  args, csv_metadata[args.sample_name])
+    return
 
 
 if __name__ == "__main__":
