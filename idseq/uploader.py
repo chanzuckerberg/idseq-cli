@@ -305,7 +305,15 @@ def print_metadata_instructions():
     )
 
 
-def get_user_metadata(base_url, headers, sample_names, project_id, metadata_file=None, skip_geosearch=False, accept_all=False):
+def get_user_metadata(
+    base_url,
+    headers,
+    sample_names,
+    project_id,
+    metadata_file=None,
+    skip_geosearch=False,
+    accept_all=False
+):
     instructions_printed = False
 
     if not metadata_file:
