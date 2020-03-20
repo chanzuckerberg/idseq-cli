@@ -220,6 +220,7 @@ def upload(
         if len(resp.get("errors", {})) == 0:
             print("Connected to the server.")
         else:
+            remove_files(all_file_parts)
             errors = resp["errors"]
             if skip_duplicates and errors[0]['name'] == ['has already been taken']:
                 # This error is returned from Rails web app according to the
@@ -228,7 +229,6 @@ def upload(
                 raise ValueError('name has already been taken')
             else:
                 print("\nFailed. Error response from IDseq server: {}".format(resp["errors"]))
-                remove_files(all_file_parts)
                 return
     else:
         # Handle potential responses without proper error fields
