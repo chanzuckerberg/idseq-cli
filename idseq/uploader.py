@@ -222,7 +222,7 @@ def upload(
         else:
             remove_files(all_file_parts)
             errors = resp["errors"]
-            if skip_duplicates and errors[0]['name'] == ['has already been taken']:
+            if skip_duplicates and len(errors) == 1 and errors[0]['name'] == ['has already been taken']:
                 # This error is returned from Rails web app according to the
                 # validation rule on the name attribute. See Sample.rb in the
                 # idseq-web repo.
