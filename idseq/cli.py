@@ -168,7 +168,8 @@ def upload_sample(sample_name, file_0, file_1, headers, args, csv_metadata):
         sample_error_text(sample_name, e)
         network_err_text()
     except ValueError as e:
-        print(f'Skipping {sample_name}: name has already been taken in project {args.project or args.project_id}.')
+        print('Skipping {}: name has already been taken in project {}.'.format(
+            sample_name, args.project or args.project_id))
     except Exception as e:
         traceback.print_exc()
         sample_error_text(sample_name, e)
