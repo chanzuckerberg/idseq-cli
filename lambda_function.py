@@ -38,7 +38,7 @@ def lambda_handler(event, context):
         accept_all=True,
         use_taxon_whitelist=True,
         # for testing
-        # do_not_process=True,
+        do_not_process=False,
 
         url='https://idseq.net',
         # uploadchunksize is ignored for s3
