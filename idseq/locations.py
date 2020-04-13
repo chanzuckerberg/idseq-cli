@@ -90,24 +90,23 @@ def print_location_matches(csv_data, base_url, project_id):
     print("\n{:30} | Collection Location".format("Sample Name"))
     print("-" * 60)
     plain_text_found = False
-    restricted_found = False
+    adjusted_location_found = False
     for sample_name, metadata in csv_data.items():
         for field_name, result in metadata.items():
             if field_name.lower() in COLLECTION_LOCATION_ALIASES:
                 value = result
                 if type(value) is dict:
                     value = value["name"]
-                    if result.get("restricted"):
+                    if result.get("refetch_adjusted_location"):
                         value += " (!)"
-                        restricted_found = True
-                        result.pop("restricted")
+                        adjusted_location_found = True
                 else:
                     value += " *"
                     plain_text_found = True
                 print("{:30} | {}".format(sample_name, value))
     if plain_text_found:
         print("\n* Unresolved plain text location, not shown on maps.")
-    if restricted_found:
+    if adjusted_location_found:
         print("\n(!) Changed to county/district level for personal privacy.")
     print(
         "\nTo make additional changes after uploading, go to the project page: "
@@ -144,13 +143,29 @@ def process_location_selection(result, is_human):
         # NOTE: The backend will redo the geosearch for confirmation and re-apply this restriction:
         # For human samples, drop the city part of the name and show a warning.
         # TODO(jsheu): Consider consolidating warnings to the backend.
+
+        # If the subdivision name is identical to the city name, remove the subdivision name as well to be safe.
+        if result["subdivision_name"] == result["city_name"]:
+            result["subdivision_name"] = ""
+
+        # Remove the city name.
+        result["city_name"] = ""
+
         new_name = ", ".join(
             [
                 result[n]
                 for n in ["subdivision_name", "state_name", "country_name"]
-                if n in result
+                if result.get(n, "") != ""
             ]
         )
         result["name"] = new_name
-        result["restricted"] = True
+        result["refetch_adjusted_location"] = True
+
+        if result.get("subdivision_name", "") != "":
+            result["geo_level"] = "subdivision"
+        elif result.get("state_name", "") != "":
+            result["geo_level"] = "state"
+        elif result.get("country_name", "") != "":
+            result["geo_level"] = "country"
+
     return result
