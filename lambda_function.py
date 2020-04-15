@@ -12,6 +12,7 @@ try:
 except ImportError:
     pass
 
+
 def lambda_handler(event, context):
     print("Log stream name:", context.log_stream_name)
     print("Log group name:", context.log_group_name)
@@ -36,7 +37,7 @@ def lambda_handler(event, context):
         bulk=None,
         skip_geosearch=True,
         accept_all=True,
-        use_taxon_whitelist=True,
+        use_taxon_whitelist=False,
         # for testing
         do_not_process=False,
 
