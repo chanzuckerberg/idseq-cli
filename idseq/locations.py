@@ -140,6 +140,8 @@ def get_geo_search_suggestion(base_url, headers, query, matched_locations, attem
 
 def process_location_selection(result, is_human):
     if is_human and result.get("geo_level") == "city":
+        # Make a copy of the result to avoid side effects.
+        result = result.copy()
         # NOTE: The backend will redo the geosearch for confirmation and re-apply this restriction:
         # For human samples, drop the city part of the name and show a warning.
         # TODO(jsheu): Consider consolidating warnings to the backend.
