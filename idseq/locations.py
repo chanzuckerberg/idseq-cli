@@ -81,7 +81,7 @@ def set_location_matches(csv_data, matched_locations):
                 if value in matched_locations:
                     result = matched_locations[value]
                     is_human = any(
-                        [(metadata.get(n)).lower() == "human" for n in constants.HOST_GENOME_ALIASES]
+                        [metadata.get(n) and metadata.get(n).lower() == "human" for n in constants.HOST_GENOME_ALIASES]
                     )
                     metadata[field_name] = process_location_selection(result, is_human)
 
