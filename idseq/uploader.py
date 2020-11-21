@@ -25,6 +25,7 @@ DEFAULT_MAX_PART_SIZE_IN_MB = 5000
 INPUT_REGEX = "(.+)\.(fastq|fq|fasta|fa)(\.gz|$)"
 PAIRED_REGEX = "(.+)(_R\d)(_001)?\.(fastq|fq|fasta|fa)(\.gz|$)"
 PART_SUFFIX = "__AWS-MULTI-PART-"
+BUFFER_SIZE = 1024 ** 2 # 1 Mb
 
 
 class File():
@@ -56,11 +57,18 @@ class File():
         partial_files = []
         suffix_iter = product(ascii_lowercase, repeat=2)
         try:
-            with open(self.path, 'rb') as fread:
-                for chunk in iter(lambda: fread.read(max_part_size), b''):
-                    partial_files.append("{}{}".format(prefix, ''.join(next(suffix_iter))))
-                    with open(partial_files[-1], 'wb') as fwrite:
-                        fwrite.write(chunk)
+            buffer = memoryview(bytearray(min(BUFFER_SIZE,max_part_size)))
+            with buffer, open(self.path, 'rb') as fread:
+                for suf in suffix_iter:
+                    partial_files.append("{}{}".format(prefix, ''.join(suf)))
+                    remaining = max_part_size
+                    bytes_read = fread.readinto(buffer)
+                    if bytes_read:
+                        with open(partial_files[-1], 'wb') as fwrite:
+                            while bytes_read:
+                                fwrite.write(buffer[:bytes_read])
+                                remaining -= bytes_read
+                                bytes_read = fread.readinto(buffer[:min(remaining, len(buffer))])
             return partial_files
         except StopIteration:
             print("[ERROR] File too large")
