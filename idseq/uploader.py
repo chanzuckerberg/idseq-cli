@@ -57,7 +57,7 @@ class File():
         partial_files = []
         suffix_iter = product(ascii_lowercase, repeat=2)
         try:
-            buffer = memoryview(bytearray(min(BUFFER_SIZE,max_part_size)))
+            buffer = memoryview(bytearray(min(BUFFER_SIZE, max_part_size)))
             with buffer, open(self.path, 'rb') as fread:
                 for suf in suffix_iter:
                     partial_files.append("{}{}".format(prefix, ''.join(suf)))
