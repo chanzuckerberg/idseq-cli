@@ -25,7 +25,7 @@ DEFAULT_MAX_PART_SIZE_IN_MB = 5000
 INPUT_REGEX = "(.+)\.(fastq|fq|fasta|fa)(\.gz|$)"
 PAIRED_REGEX = "(.+)(_R\d)(_001)?\.(fastq|fq|fasta|fa)(\.gz|$)"
 PART_SUFFIX = "__AWS-MULTI-PART-"
-BUFFER_SIZE = 1024 ** 2 # 1 Mb
+BUFFER_SIZE = 1024 ** 2  # 1 Mb
 
 
 class File():
