@@ -56,21 +56,22 @@ class File():
 
         partial_files = []
         suffix_iter = product(ascii_lowercase, repeat=2)
-        try:
-            buffer = memoryview(bytearray(min(BUFFER_SIZE, max_part_size)))
-            with buffer, open(self.path, 'rb') as fread:
-                for suf in suffix_iter:
+        buffer = memoryview(bytearray(min(BUFFER_SIZE, max_part_size)))
+        with buffer, open(self.path, 'rb') as fread:
+            for suf in suffix_iter:
+                remaining = max_part_size
+                bytes_read = fread.readinto(buffer)
+                if bytes_read:
                     partial_files.append("{}{}".format(prefix, ''.join(suf)))
-                    remaining = max_part_size
-                    bytes_read = fread.readinto(buffer)
-                    if bytes_read:
-                        with open(partial_files[-1], 'wb') as fwrite:
-                            while bytes_read:
-                                fwrite.write(buffer[:bytes_read])
-                                remaining -= bytes_read
-                                bytes_read = fread.readinto(buffer[:min(remaining, len(buffer))])
-            return partial_files
-        except StopIteration:
+                    with open(partial_files[-1], 'wb') as fwrite:
+                        while bytes_read:
+                            fwrite.write(buffer[:bytes_read])
+                            remaining -= bytes_read
+                            bytes_read = fread.readinto(buffer[:min(remaining, len(buffer))])
+                else:
+                    return partial_files
+
+            # All suffixes have been used
             print("[ERROR] File too large")
             remove_files(partial_files)
 
