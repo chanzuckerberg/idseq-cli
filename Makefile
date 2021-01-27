@@ -1,4 +1,3 @@
-
 .PHONY: lint
 
 all: lint test
@@ -8,3 +7,8 @@ lint:
 
 test:
 	@echo 'done'
+
+release:
+	-rm -rf dist
+	python setup.py sdist bdist_wheel
+	twine upload dist/*.tar.gz dist/*.whl --sign --verbose
