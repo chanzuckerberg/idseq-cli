@@ -3,7 +3,7 @@ from setuptools import setup
 setup(name='idseq',
       version='0.8.13',
       description='IDseq CLI',
-      url='http://github.com/chanzuckerberg/idsdeq-cli',
+      url='http://github.com/chanzuckerberg/idseq-cli',
       author='Chan Zuckerberg Initiative, LLC',
       author_email='help@idseq.net',
       license='MIT',
