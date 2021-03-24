@@ -1,4 +1,6 @@
-# [IDseq](https://idseq.net/) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/chanzuckerberg/idseq-web/blob/master/LICENSE) [![Build Status](https://travis-ci.org/chanzuckerberg/idseq-cli.svg?branch=master)](https://travis-ci.org/chanzuckerberg/idseq-cli) ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+# [IDseq](https://idseq.net/) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/chanzuckerberg/idseq-web/blob/master/LICENSE) [![Build Status](https://travis-ci.org/chanzuckerberg/idseq-cli.svg?branch=master)](https://travis-ci.org/chanzuckerberg/idseq-cli)
+
+This project is stable and still maintained, but not actively under development.
 
 ![logo](https://assets.idseq.net/assets/Logo_Black.png)
 
@@ -18,7 +20,7 @@ Check out our repositories:
 - [idseq-bench](https://github.com/chanzuckerberg/idseq-bench) - Pipeline benchmarking tools
 
 
-## Usage Instructions
+## Getting Started/Usage Instructions
 - See live instructions and view your user token at https://idseq.net/cli_user_instructions
 
 ### (1) Install and configure the Amazon Web Services Command Line Interface (AWS CLI):
@@ -82,4 +84,17 @@ Edit the command in this text box and copy-and-paste:
 ### `OverflowError: cannot fit 'int' into an index-sized integer.`
 
 Your computer might be limited on RAM. Try reducing your file chunk size by adding `--uploadchunksize 250` to your command. This splits your file into smaller pieces before uploading each one to IDseq.
+
+
+## Contributing
+
+This project is not currently accepting contributions at this time.
+
+This project adheres to the Contributor Covenant [code of conduct](https://www.contributor-covenant.org/). By participating, you are expected to uphold this code. Please report unacceptable behavior to opensource@chanzuckerberg.com.
+
+## Reporting Security Issues
+
+Please note: If you believe you have found a security issue, please responsibly disclose by contacting us at security@chanzuckerberg.com.
+
+See [SECURITY.md](SECURITY.md) for more information.
 
