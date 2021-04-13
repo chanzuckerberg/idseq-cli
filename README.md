@@ -1,6 +1,6 @@
 # [IDseq](https://idseq.net/) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/chanzuckerberg/idseq-web/blob/master/LICENSE) [![Build Status](https://travis-ci.org/chanzuckerberg/idseq-cli.svg?branch=master)](https://travis-ci.org/chanzuckerberg/idseq-cli)
 
-This project is stable and still maintained, but not actively under development.
+Warning: this CLI will soon be deprecated, consider switching to [version 2](https://github.com/chanzuckerberg/idseq-cli-v2). This project is stable and currently still being maintained, but it is not actively under development. Any new features will be added to version 2. [Here](https://github.com/chanzuckerberg/idseq-cli-v2#differences-from-version-1) is a list of differences from version 1 including exciting new features!
 
 ![logo](https://assets.idseq.net/assets/Logo_Black.png)
 
