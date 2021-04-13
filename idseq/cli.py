@@ -22,7 +22,9 @@ def validate_file(path, name):
 
 
 def main():
-    print("Warning: this CLI will soon be deprecated, consider switching to version 2: https://github.com/chanzuckerberg/idseq-cli-v2\n", file=sys.stderr)
+    message = "Warning: this CLI will soon be deprecated," + \
+    " consider switching to version 2: https://github.com/chanzuckerberg/idseq-cli-v2\n"
+    print(message, file=sys.stderr)
 
     parser = argparse.ArgumentParser(
         description='Submit a sample to idseq. (Accepts fastq or fasta files, single or paired, gzipped or not.)'
