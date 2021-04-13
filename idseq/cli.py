@@ -23,7 +23,7 @@ def validate_file(path, name):
 
 def main():
     message = "Warning: this CLI will soon be deprecated," + \
-    " consider switching to version 2: https://github.com/chanzuckerberg/idseq-cli-v2\n"
+              " consider switching to version 2: https://github.com/chanzuckerberg/idseq-cli-v2\n"
     print(message, file=sys.stderr)
 
     parser = argparse.ArgumentParser(
