@@ -1,7 +1,9 @@
+from __future__ import print_function
 import argparse
 import re
 import requests
 import traceback
+import sys
 from . import uploader
 
 from builtins import input
@@ -20,6 +22,10 @@ def validate_file(path, name):
 
 
 def main():
+    message = "Warning: this CLI will soon be deprecated," + \
+              " consider switching to version 2: https://github.com/chanzuckerberg/idseq-cli-v2\n"
+    print(message, file=sys.stderr)
+
     parser = argparse.ArgumentParser(
         description='Submit a sample to idseq. (Accepts fastq or fasta files, single or paired, gzipped or not.)'
     )
